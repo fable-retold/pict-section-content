@@ -355,8 +355,14 @@ class PictContentProvider extends libPictProvider
 
 		let tmpResult = pText;
 
-		// Inline code (backticks) - handle first to avoid interfering with other patterns
-		tmpResult = tmpResult.replace(/`([^`]+)`/g, '<code>$1</code>');
+		// Extract inline code spans into placeholders so bold/italic regexes don't mangle their contents
+		let tmpCodeSpans = [];
+		tmpResult = tmpResult.replace(/`([^`]+)`/g, (pMatch, pCode) =>
+		{
+			let tmpIndex = tmpCodeSpans.length;
+			tmpCodeSpans.push('<code>' + pCode + '</code>');
+			return '\x00CODEINLINE' + tmpIndex + '\x00';
+		});
 
 		// Inline LaTeX equations ($...$) — must be processed before other inline patterns
 		// Match single $ delimiters that aren't adjacent to spaces (to avoid false positives with currency)
@@ -395,6 +401,12 @@ class PictContentProvider extends libPictProvider
 		// Italic
 		tmpResult = tmpResult.replace(/\*([^*]+)\*/g, '<em>$1</em>');
 		tmpResult = tmpResult.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+		// Restore inline code spans from placeholders
+		tmpResult = tmpResult.replace(/\x00CODEINLINE(\d+)\x00/g, (pMatch, pIndex) =>
+		{
+			return tmpCodeSpans[parseInt(pIndex)];
+		});
 
 		return tmpResult;
 	}
