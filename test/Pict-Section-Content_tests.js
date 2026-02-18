@@ -257,6 +257,146 @@ suite
 
 		suite
 		(
+			'Multi-line Paragraph Handling',
+			function()
+			{
+				test
+				(
+					'parseMarkdown should join consecutive lines into a single paragraph.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('This is the first line\nof a single paragraph\nthat spans three lines.');
+						// All three lines should be in one <p> tag
+						Expect(tmpResult).to.contain('<p>This is the first line of a single paragraph that spans three lines.</p>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should separate paragraphs on blank lines.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('First paragraph line one\nfirst paragraph line two.\n\nSecond paragraph line one\nsecond paragraph line two.');
+						Expect(tmpResult).to.contain('<p>First paragraph line one first paragraph line two.</p>');
+						Expect(tmpResult).to.contain('<p>Second paragraph line one second paragraph line two.</p>');
+						// Should produce exactly two <p> tags
+						var tmpParagraphCount = (tmpResult.match(/<p>/g) || []).length;
+						Expect(tmpParagraphCount).to.equal(2);
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should flush paragraph before a heading.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('Some introductory text\nthat spans two lines.\n## A Heading');
+						Expect(tmpResult).to.contain('<p>Some introductory text that spans two lines.</p>');
+						Expect(tmpResult).to.contain('<h2');
+						Expect(tmpResult).to.contain('A Heading');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should flush paragraph before a list.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('Here is a paragraph\nbefore a list.\n- Item 1\n- Item 2');
+						Expect(tmpResult).to.contain('<p>Here is a paragraph before a list.</p>');
+						Expect(tmpResult).to.contain('<ul>');
+						Expect(tmpResult).to.contain('<li>Item 1</li>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should flush paragraph before a code block.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('Some text before code\nstill the same paragraph.\n```\ncode here\n```');
+						Expect(tmpResult).to.contain('<p>Some text before code still the same paragraph.</p>');
+						Expect(tmpResult).to.contain('<pre>');
+						Expect(tmpResult).to.contain('code here');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should flush paragraph before a blockquote.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('A multi-line\nparagraph here.\n> A blockquote');
+						Expect(tmpResult).to.contain('<p>A multi-line paragraph here.</p>');
+						Expect(tmpResult).to.contain('<blockquote>');
+						Expect(tmpResult).to.contain('A blockquote');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should handle a paragraph after a code block.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('```\ncode\n```\nA paragraph that\nfollows the code block.');
+						Expect(tmpResult).to.contain('<pre>');
+						Expect(tmpResult).to.contain('<p>A paragraph that follows the code block.</p>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should handle inline formatting within multi-line paragraphs.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('This paragraph has **bold** on the first line\nand *italic* on the second line.');
+						Expect(tmpResult).to.contain('<strong>bold</strong>');
+						Expect(tmpResult).to.contain('<em>italic</em>');
+						// Should be a single paragraph
+						var tmpParagraphCount = (tmpResult.match(/<p>/g) || []).length;
+						Expect(tmpParagraphCount).to.equal(1);
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should handle hand-wrapped README-style paragraphs.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpInput = 'Ultravisor is a process supervisor and service\n'
+							+ 'orchestrator built on the Fable ecosystem.\n'
+							+ 'It manages the lifecycle of multiple child\n'
+							+ 'processes from a single configuration.\n'
+							+ '\n'
+							+ 'Designed for development and production\n'
+							+ 'environments alike, it provides log\n'
+							+ 'aggregation and automatic restarts.';
+						var tmpResult = tmpProvider.parseMarkdown(tmpInput);
+						var tmpParagraphCount = (tmpResult.match(/<p>/g) || []).length;
+						Expect(tmpParagraphCount).to.equal(2, 'Should produce exactly two paragraphs.');
+						// First paragraph should contain all four lines joined
+						Expect(tmpResult).to.contain('Ultravisor is a process supervisor and service');
+						Expect(tmpResult).to.contain('orchestrator built on the Fable ecosystem.');
+						// Second paragraph should contain all three lines joined
+						Expect(tmpResult).to.contain('Designed for development and production');
+						Expect(tmpResult).to.contain('aggregation and automatic restarts.');
+						fDone();
+					}
+				);
+			}
+		);
+
+		suite
+		(
 			'Inline Markdown Parsing',
 			function()
 			{

@@ -46,6 +46,17 @@ class PictContentProvider extends libPictProvider
 		let tmpBlockquoteLines = [];
 		let tmpInMathBlock = false;
 		let tmpMathLines = [];
+		let tmpParagraphLines = [];
+
+		// Helper to flush accumulated paragraph lines into a single <p> tag
+		let fFlushParagraph = () =>
+		{
+			if (tmpParagraphLines.length > 0)
+			{
+				tmpHTML.push('<p>' + tmpParagraphLines.map((pLine) => { return this.parseInline(pLine, pLinkResolver); }).join(' ') + '</p>');
+				tmpParagraphLines = [];
+			}
+		};
 
 		for (let i = 0; i < tmpLines.length; i++)
 		{
@@ -63,6 +74,8 @@ class PictContentProvider extends libPictProvider
 				}
 				else
 				{
+					// Flush any pending paragraph
+					fFlushParagraph();
 					// Close any open list or blockquote
 					if (tmpInList)
 					{
@@ -122,6 +135,8 @@ class PictContentProvider extends libPictProvider
 				}
 				else
 				{
+					// Flush any pending paragraph
+					fFlushParagraph();
 					// Close any open list or blockquote
 					if (tmpInList)
 					{
@@ -153,6 +168,8 @@ class PictContentProvider extends libPictProvider
 			{
 				if (!tmpInBlockquote)
 				{
+					// Flush any pending paragraph
+					fFlushParagraph();
 					// Close any open list
 					if (tmpInList)
 					{
@@ -175,6 +192,7 @@ class PictContentProvider extends libPictProvider
 			// Horizontal rule
 			if (tmpLine.match(/^(-{3,}|\*{3,}|_{3,})\s*$/))
 			{
+				fFlushParagraph();
 				if (tmpInList)
 				{
 					tmpHTML.push(tmpListType === 'ul' ? '</ul>' : '</ol>');
@@ -188,6 +206,7 @@ class PictContentProvider extends libPictProvider
 			let tmpHeadingMatch = tmpLine.match(/^(#{1,6})\s+(.+)/);
 			if (tmpHeadingMatch)
 			{
+				fFlushParagraph();
 				if (tmpInList)
 				{
 					tmpHTML.push(tmpListType === 'ul' ? '</ul>' : '</ol>');
@@ -204,6 +223,7 @@ class PictContentProvider extends libPictProvider
 			let tmpULMatch = tmpLine.match(/^(\s*)[-*+]\s+(.*)/);
 			if (tmpULMatch)
 			{
+				fFlushParagraph();
 				if (!tmpInList || tmpListType !== 'ul')
 				{
 					if (tmpInList)
@@ -222,6 +242,7 @@ class PictContentProvider extends libPictProvider
 			let tmpOLMatch = tmpLine.match(/^(\s*)\d+\.\s+(.*)/);
 			if (tmpOLMatch)
 			{
+				fFlushParagraph();
 				if (!tmpInList || tmpListType !== 'ol')
 				{
 					if (tmpInList)
@@ -243,15 +264,17 @@ class PictContentProvider extends libPictProvider
 				tmpInList = false;
 			}
 
-			// Empty line
+			// Empty line — flush any accumulated paragraph
 			if (tmpLine.trim() === '')
 			{
+				fFlushParagraph();
 				continue;
 			}
 
 			// Table detection
 			if (tmpLine.match(/^\|/) && i + 1 < tmpLines.length && tmpLines[i + 1].match(/^\|[\s-:|]+\|/))
 			{
+				fFlushParagraph();
 				// Close any open list
 				if (tmpInList)
 				{
@@ -291,9 +314,13 @@ class PictContentProvider extends libPictProvider
 				continue;
 			}
 
-			// Regular paragraph
-			tmpHTML.push('<p>' + this.parseInline(tmpLine, pLinkResolver) + '</p>');
+			// Accumulate paragraph lines — consecutive non-blank text lines
+			// will be joined into a single <p> tag when flushed
+			tmpParagraphLines.push(tmpLine);
 		}
+
+		// Flush any remaining accumulated paragraph
+		fFlushParagraph();
 
 		// Close any trailing open elements
 		if (tmpInList)
