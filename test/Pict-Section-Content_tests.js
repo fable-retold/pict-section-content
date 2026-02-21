@@ -97,15 +97,21 @@ suite
 				);
 				test
 				(
-					'parseMarkdown should handle code blocks.',
+					'parseMarkdown should handle code blocks with syntax highlighting and line numbers.',
 					(fDone) =>
 					{
 						var tmpProvider = createProvider();
 						var tmpResult = tmpProvider.parseMarkdown('```javascript\nvar x = 1;\n```');
+						Expect(tmpResult).to.contain('<div class="pict-content-code-wrap">');
+						Expect(tmpResult).to.contain('<div class="pict-content-code-line-numbers">');
 						Expect(tmpResult).to.contain('<pre>');
 						Expect(tmpResult).to.contain('<code');
 						Expect(tmpResult).to.contain('language-javascript');
-						Expect(tmpResult).to.contain('var x = 1;');
+						// Syntax highlighting should produce keyword spans
+						Expect(tmpResult).to.contain('<span class="keyword">');
+						Expect(tmpResult).to.contain('var');
+						// Line numbers should be present
+						Expect(tmpResult).to.contain('<span>1</span>');
 						fDone();
 					}
 				);
@@ -224,6 +230,7 @@ suite
 					{
 						var tmpProvider = createProvider();
 						var tmpResult = tmpProvider.parseMarkdown('````\n```\ninner\n```\n````');
+						Expect(tmpResult).to.contain('<div class="pict-content-code-wrap">');
 						Expect(tmpResult).to.contain('<pre>');
 						Expect(tmpResult).to.contain('inner');
 						fDone();
@@ -249,6 +256,82 @@ suite
 						var tmpResult = tmpProvider.parseMarkdown('```\n<script>alert("xss")</script>\n```');
 						Expect(tmpResult).to.contain('&lt;script&gt;');
 						Expect(tmpResult).to.not.contain('<script>alert');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should generate correct line numbers for multi-line code blocks.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('```javascript\nline1\nline2\nline3\nline4\nline5\n```');
+						Expect(tmpResult).to.contain('<span>1</span>');
+						Expect(tmpResult).to.contain('<span>2</span>');
+						Expect(tmpResult).to.contain('<span>3</span>');
+						Expect(tmpResult).to.contain('<span>4</span>');
+						Expect(tmpResult).to.contain('<span>5</span>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should syntax-highlight JSON code blocks.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown('```json\n{"key": true}\n```');
+						Expect(tmpResult).to.contain('<div class="pict-content-code-wrap">');
+						Expect(tmpResult).to.contain('<span class="string">');
+						Expect(tmpResult).to.contain('<span class="keyword">');
+						fDone();
+					}
+				);
+				test
+				(
+					'highlightCode should return highlighted HTML for known languages.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.highlightCode('const x = 42;', 'javascript');
+						Expect(tmpResult).to.contain('<span class="keyword">');
+						Expect(tmpResult).to.contain('<span class="number">');
+						fDone();
+					}
+				);
+				test
+				(
+					'highlightCode should handle empty input.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						Expect(tmpProvider.highlightCode('', 'javascript')).to.equal('');
+						Expect(tmpProvider.highlightCode(null, 'javascript')).to.equal('');
+						fDone();
+					}
+				);
+				test
+				(
+					'generateLineNumbers should produce the correct number of lines.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.generateLineNumbers('a\nb\nc');
+						Expect(tmpResult).to.contain('<span>1</span>');
+						Expect(tmpResult).to.contain('<span>2</span>');
+						Expect(tmpResult).to.contain('<span>3</span>');
+						Expect(tmpResult).to.not.contain('<span>4</span>');
+						fDone();
+					}
+				);
+				test
+				(
+					'generateLineNumbers should handle single-line code.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.generateLineNumbers('single line');
+						Expect(tmpResult).to.equal('<span>1</span>');
 						fDone();
 					}
 				);

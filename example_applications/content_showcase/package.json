@@ -1,0 +1,26 @@
+{
+	"name": "content_showcase_application",
+	"version": "1.0.0",
+	"description": "Content showcase with sidebar navigation demonstrating KaTeX, Mermaid and code",
+	"main": "Pict-Application-ContentShowcase.js",
+	"scripts": {
+		"start": "node Pict-Application-ContentShowcase.js",
+		"build": "npx quack build && npx quack copy"
+	},
+	"author": "steven",
+	"license": "MIT",
+	"devDependencies": {},
+	"copyFilesSettings": {
+		"whenFileExists": "overwrite"
+	},
+	"copyFiles": [
+		{
+			"from": "./html/*",
+			"to": "./dist/"
+		},
+		{
+			"from": "../../node_modules/pict/dist/*",
+			"to": "./dist/"
+		}
+	]
+}

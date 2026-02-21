@@ -1,4 +1,5 @@
 const libPictProvider = require('pict-provider');
+const libCreateHighlighter = require('pict-section-code').createHighlighter;
 
 /**
  * Content Provider for Pict Section Content
@@ -6,6 +7,7 @@ const libPictProvider = require('pict-provider');
  * A general-purpose markdown-to-HTML parser with support for:
  * - Headings, paragraphs, lists, blockquotes, horizontal rules
  * - Fenced code blocks with language tags (nested fence support)
+ * - Syntax highlighting and line numbers for code blocks (via pict-section-code)
  * - Tables (GFM pipe syntax)
  * - Mermaid diagram blocks
  * - KaTeX math (inline and display)
@@ -18,6 +20,52 @@ class PictContentProvider extends libPictProvider
 	constructor(pFable, pOptions, pServiceHash)
 	{
 		super(pFable, pOptions, pServiceHash);
+	}
+
+	/**
+	 * Highlight a code string using pict-section-code's syntax highlighter.
+	 * Uses a mock element to interface with the highlighter's DOM-based API.
+	 *
+	 * @param {string} pCode - The raw code string
+	 * @param {string} pLanguage - The language identifier (e.g. "javascript", "html")
+	 * @returns {string} The syntax-highlighted HTML
+	 */
+	highlightCode(pCode, pLanguage)
+	{
+		if (!pCode)
+		{
+			return '';
+		}
+
+		let tmpHighlighter = libCreateHighlighter(pLanguage);
+		// Create a mock element to interface with the highlighter
+		let tmpMockElement = { textContent: pCode, innerHTML: '' };
+		tmpHighlighter(tmpMockElement);
+		return tmpMockElement.innerHTML;
+	}
+
+	/**
+	 * Generate line number HTML for a code block.
+	 *
+	 * @param {string} pCode - The raw code string
+	 * @returns {string} HTML string with line number spans
+	 */
+	generateLineNumbers(pCode)
+	{
+		if (!pCode)
+		{
+			return '<span>1</span>';
+		}
+
+		let tmpLineCount = pCode.split('\n').length;
+		let tmpHTML = '';
+
+		for (let i = 1; i <= tmpLineCount; i++)
+		{
+			tmpHTML += '<span>' + i + '</span>';
+		}
+
+		return tmpHTML;
 	}
 
 	/**
@@ -118,7 +166,10 @@ class PictContentProvider extends libPictProvider
 						}
 						else
 						{
-							tmpHTML.push('<pre><code class="language-' + this.escapeHTML(tmpCodeLang) + '">' + this.escapeHTML(tmpCodeLines.join('\n')) + '</code></pre>');
+							let tmpCodeText = tmpCodeLines.join('\n');
+						let tmpHighlightedCode = this.highlightCode(tmpCodeText, tmpCodeLang);
+						let tmpLineNumbersHTML = this.generateLineNumbers(tmpCodeText);
+						tmpHTML.push('<div class="pict-content-code-wrap"><div class="pict-content-code-line-numbers">' + tmpLineNumbersHTML + '</div><pre><code class="language-' + this.escapeHTML(tmpCodeLang) + '">' + tmpHighlightedCode + '</code></pre></div>');
 						}
 						tmpInCodeBlock = false;
 						tmpCodeFenceLength = 0;
@@ -333,7 +384,10 @@ class PictContentProvider extends libPictProvider
 		}
 		if (tmpInCodeBlock)
 		{
-			tmpHTML.push('<pre><code>' + this.escapeHTML(tmpCodeLines.join('\n')) + '</code></pre>');
+			let tmpCodeText = tmpCodeLines.join('\n');
+			let tmpHighlightedCode = this.highlightCode(tmpCodeText, tmpCodeLang);
+			let tmpLineNumbersHTML = this.generateLineNumbers(tmpCodeText);
+			tmpHTML.push('<div class="pict-content-code-wrap"><div class="pict-content-code-line-numbers">' + tmpLineNumbersHTML + '</div><pre><code>' + tmpHighlightedCode + '</code></pre></div>');
 		}
 
 		return tmpHTML.join('\n');

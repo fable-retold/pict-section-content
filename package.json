@@ -1,6 +1,6 @@
 {
 	"name": "pict-section-content",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "Pict content rendering section - markdown parsing, Mermaid diagrams, and KaTeX equations",
 	"main": "source/Pict-Section-Content.js",
 	"scripts": {
@@ -22,13 +22,14 @@
 	"homepage": "https://github.com/stevenvelozo/pict-section-content#readme",
 	"dependencies": {
 		"pict-provider": "^1.0.10",
+		"pict-section-code": "^0.0.1",
 		"pict-view": "^1.0.66"
 	},
 	"devDependencies": {
 		"chai": "^6.2.2",
 		"mocha": "^11.7.5",
-		"pict": "^1.0.348",
-		"quackage": "^1.0.51"
+		"pict": "^1.0.350",
+		"quackage": "^1.0.56"
 	},
 	"mocha": {
 		"diff": true,

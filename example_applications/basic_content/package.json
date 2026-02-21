@@ -1,0 +1,26 @@
+{
+	"name": "basic_content_application",
+	"version": "1.0.0",
+	"description": "Basic pict-section-content example with KaTeX and Mermaid",
+	"main": "Pict-Application-BasicContent.js",
+	"scripts": {
+		"start": "node Pict-Application-BasicContent.js",
+		"build": "npx quack build && npx quack copy"
+	},
+	"author": "steven",
+	"license": "MIT",
+	"devDependencies": {},
+	"copyFilesSettings": {
+		"whenFileExists": "overwrite"
+	},
+	"copyFiles": [
+		{
+			"from": "./html/*",
+			"to": "./dist/"
+		},
+		{
+			"from": "../../node_modules/pict/dist/*",
+			"to": "./dist/"
+		}
+	]
+}
