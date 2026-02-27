@@ -27,7 +27,7 @@
 	},
 	"devDependencies": {
 		"pict": "^1.0.350",
-		"quackage": "^1.0.56"
+		"quackage": "^1.0.58"
 	},
 	"mocha": {
 		"diff": true,
