@@ -673,6 +673,90 @@ suite
 
 		suite
 		(
+			'Image Resolver Callback',
+			function()
+			{
+				test
+				(
+					'parseInline should use a custom image resolver when provided.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpImageResolver = (pSrc, pAlt) =>
+						{
+							return 'docs/images/' + pSrc;
+						};
+						var tmpResult = tmpProvider.parseInline('![diagram](diagram.svg)', null, tmpImageResolver);
+						Expect(tmpResult).to.contain('src="docs/images/diagram.svg"');
+						Expect(tmpResult).to.contain('alt="diagram"');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseInline should leave image src unchanged when resolver returns null.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpImageResolver = (pSrc, pAlt) =>
+						{
+							return null;
+						};
+						var tmpResult = tmpProvider.parseInline('![photo](photo.png)', null, tmpImageResolver);
+						Expect(tmpResult).to.contain('src="photo.png"');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseInline should pass images through unchanged when no resolver is provided.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseInline('![alt](image.png)');
+						Expect(tmpResult).to.contain('src="image.png"');
+						Expect(tmpResult).to.contain('alt="alt"');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should thread the image resolver through to inline parsing.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResolverCalled = false;
+						var tmpImageResolver = (pSrc, pAlt) =>
+						{
+							tmpResolverCalled = true;
+							return 'resolved/' + pSrc;
+						};
+						var tmpResult = tmpProvider.parseMarkdown('![graph](graph.svg)', null, tmpImageResolver);
+						Expect(tmpResolverCalled).to.equal(true);
+						Expect(tmpResult).to.contain('src="resolved/graph.svg"');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should thread the image resolver into blockquotes.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpImageResolver = (pSrc, pAlt) =>
+						{
+							return 'base/' + pSrc;
+						};
+						var tmpResult = tmpProvider.parseMarkdown('> ![img](pic.png)', null, tmpImageResolver);
+						Expect(tmpResult).to.contain('src="base/pic.png"');
+						fDone();
+					}
+				);
+			}
+		);
+
+		suite
+		(
 			'HTML Escaping',
 			function()
 			{

@@ -604,7 +604,48 @@ class ContentShowcaseApplication extends libPictApplication
 		].join('\n');
 	}
 
-	// ---- Example 10: Full Page Demo ----
+	// ---- Example 10: Images ----
+	getMarkdown_ShowcaseImages()
+	{
+		return [
+			'# Images',
+			'',
+			'## External Image',
+			'',
+			'An image loaded from an external URL:',
+			'',
+			'![Placeholder image](https://placehold.co/400x120/4a90d9/white?text=External+Image)',
+			'',
+			'## Inline SVG Data URI',
+			'',
+			'A small inline SVG using a data URI:',
+			'',
+			'![Check icon](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%20width%3D%2264%22%20height%3D%2264%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2228%22%20fill%3D%22%2350b878%22/%3E%3Cpath%20d%3D%22M20%2032%20L28%2040%20L44%2024%22%20stroke%3D%22white%22%20stroke-width%3D%224%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E)',
+			'',
+			'## Image with Alt Text',
+			'',
+			'Alt text is important for accessibility. The image below has descriptive alt text:',
+			'',
+			'![A blue placeholder showing the text "Alt Text Demo"](https://placehold.co/300x80/336699/white?text=Alt+Text+Demo)',
+			'',
+			'## Images in Lists',
+			'',
+			'- ![icon](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%234a90d9%22%20rx%3D%223%22/%3E%3C/svg%3E) First item with icon',
+			'- ![icon](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2350b878%22%20rx%3D%223%22/%3E%3C/svg%3E) Second item with icon',
+			'- ![icon](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%23e8854a%22%20rx%3D%223%22/%3E%3C/svg%3E) Third item with icon',
+			'',
+			'## Images in Tables',
+			'',
+			'| Status | Icon | Description |',
+			'| --- | --- | --- |',
+			'| Complete | ![done](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%227%22%20fill%3D%22%2350b878%22/%3E%3C/svg%3E) | Task is finished |',
+			'| Pending | ![pending](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%227%22%20fill%3D%22%23e8854a%22/%3E%3C/svg%3E) | Task is in progress |',
+			'',
+			'> **Note:** When using pict-docuserve with hash-based routing, relative image paths are automatically resolved via an image resolver callback, so `![img](images/photo.png)` works correctly even in nested document paths.',
+		].join('\n');
+	}
+
+	// ---- Example 11: Full Page Demo ----
 	getMarkdown_ShowcaseFullPage()
 	{
 		return [

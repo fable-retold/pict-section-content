@@ -73,9 +73,10 @@ class PictContentProvider extends libPictProvider
 	 *
 	 * @param {string} pMarkdown - The raw markdown text
 	 * @param {Function} [pLinkResolver] - Optional callback for link resolution: (pHref, pLinkText) => { href, target, rel } or null
+	 * @param {Function} [pImageResolver] - Optional callback for image URL resolution: (pSrc, pAlt) => resolvedSrc or null
 	 * @returns {string} The parsed HTML
 	 */
-	parseMarkdown(pMarkdown, pLinkResolver)
+	parseMarkdown(pMarkdown, pLinkResolver, pImageResolver)
 	{
 		if (!pMarkdown)
 		{
@@ -101,7 +102,7 @@ class PictContentProvider extends libPictProvider
 		{
 			if (tmpParagraphLines.length > 0)
 			{
-				tmpHTML.push('<p>' + tmpParagraphLines.map((pLine) => { return this.parseInline(pLine, pLinkResolver); }).join(' ') + '</p>');
+				tmpHTML.push('<p>' + tmpParagraphLines.map((pLine) => { return this.parseInline(pLine, pLinkResolver, pImageResolver); }).join(' ') + '</p>');
 				tmpParagraphLines = [];
 			}
 		};
@@ -132,7 +133,7 @@ class PictContentProvider extends libPictProvider
 					}
 					if (tmpInBlockquote)
 					{
-						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver) + '</blockquote>');
+						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
 						tmpInBlockquote = false;
 						tmpBlockquoteLines = [];
 					}
@@ -196,7 +197,7 @@ class PictContentProvider extends libPictProvider
 					}
 					if (tmpInBlockquote)
 					{
-						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver) + '</blockquote>');
+						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
 						tmpInBlockquote = false;
 						tmpBlockquoteLines = [];
 					}
@@ -235,7 +236,7 @@ class PictContentProvider extends libPictProvider
 			}
 			else if (tmpInBlockquote)
 			{
-				tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver) + '</blockquote>');
+				tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
 				tmpInBlockquote = false;
 				tmpBlockquoteLines = [];
 			}
@@ -264,7 +265,7 @@ class PictContentProvider extends libPictProvider
 					tmpInList = false;
 				}
 				let tmpLevel = tmpHeadingMatch[1].length;
-				let tmpText = this.parseInline(tmpHeadingMatch[2], pLinkResolver);
+				let tmpText = this.parseInline(tmpHeadingMatch[2], pLinkResolver, pImageResolver);
 				let tmpID = tmpHeadingMatch[2].toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
 				tmpHTML.push('<h' + tmpLevel + ' id="' + tmpID + '">' + tmpText + '</h' + tmpLevel + '>');
 				continue;
@@ -285,7 +286,7 @@ class PictContentProvider extends libPictProvider
 					tmpInList = true;
 					tmpListType = 'ul';
 				}
-				tmpHTML.push('<li>' + this.parseInline(tmpULMatch[2], pLinkResolver) + '</li>');
+				tmpHTML.push('<li>' + this.parseInline(tmpULMatch[2], pLinkResolver, pImageResolver) + '</li>');
 				continue;
 			}
 
@@ -304,7 +305,7 @@ class PictContentProvider extends libPictProvider
 					tmpInList = true;
 					tmpListType = 'ol';
 				}
-				tmpHTML.push('<li>' + this.parseInline(tmpOLMatch[2], pLinkResolver) + '</li>');
+				tmpHTML.push('<li>' + this.parseInline(tmpOLMatch[2], pLinkResolver, pImageResolver) + '</li>');
 				continue;
 			}
 
@@ -340,7 +341,7 @@ class PictContentProvider extends libPictProvider
 				tmpTableHTML += '<thead><tr>';
 				for (let h = 0; h < tmpHeaders.length; h++)
 				{
-					tmpTableHTML += '<th>' + this.parseInline(tmpHeaders[h].trim(), pLinkResolver) + '</th>';
+					tmpTableHTML += '<th>' + this.parseInline(tmpHeaders[h].trim(), pLinkResolver, pImageResolver) + '</th>';
 				}
 				tmpTableHTML += '</tr></thead>';
 
@@ -356,7 +357,7 @@ class PictContentProvider extends libPictProvider
 					tmpTableHTML += '<tr>';
 					for (let c = 0; c < tmpCells.length; c++)
 					{
-						tmpTableHTML += '<td>' + this.parseInline(tmpCells[c].trim(), pLinkResolver) + '</td>';
+						tmpTableHTML += '<td>' + this.parseInline(tmpCells[c].trim(), pLinkResolver, pImageResolver) + '</td>';
 					}
 					tmpTableHTML += '</tr>';
 				}
@@ -380,7 +381,7 @@ class PictContentProvider extends libPictProvider
 		}
 		if (tmpInBlockquote)
 		{
-			tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver) + '</blockquote>');
+			tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
 		}
 		if (tmpInCodeBlock)
 		{
@@ -398,9 +399,10 @@ class PictContentProvider extends libPictProvider
 	 *
 	 * @param {string} pText - The text to parse
 	 * @param {Function} [pLinkResolver] - Optional callback: (pHref, pLinkText) => { href, target, rel } or null
+	 * @param {Function} [pImageResolver] - Optional callback: (pSrc, pAlt) => resolvedSrc or null
 	 * @returns {string} HTML with inline elements
 	 */
-	parseInline(pText, pLinkResolver)
+	parseInline(pText, pLinkResolver, pImageResolver)
 	{
 		if (!pText)
 		{
@@ -425,7 +427,19 @@ class PictContentProvider extends libPictProvider
 		tmpResult = tmpResult.replace(/\$([^\$\s])\$/g, '<span class="pict-content-katex-inline">$1</span>');
 
 		// Images
-		tmpResult = tmpResult.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+		tmpResult = tmpResult.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (pMatch, pAlt, pSrc) =>
+		{
+			let tmpSrc = pSrc;
+			if (typeof pImageResolver === 'function')
+			{
+				let tmpResolved = pImageResolver(pSrc, pAlt);
+				if (tmpResolved)
+				{
+					tmpSrc = tmpResolved;
+				}
+			}
+			return '<img src="' + tmpSrc + '" alt="' + pAlt + '">';
+		});
 
 		// Links
 		tmpResult = tmpResult.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (pMatch, pLinkText, pHref) =>
