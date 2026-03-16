@@ -75,7 +75,8 @@ const _ViewConfiguration =
 			color: #9E6B47;
 		}
 		.pict-content-code-wrap {
-			position: relative;
+			display: flex;
+			flex-direction: row;
 			font-family: 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 			font-size: 14px;
 			line-height: 1.5;
@@ -85,10 +86,10 @@ const _ViewConfiguration =
 			background: #3D3229;
 		}
 		.pict-content-code-wrap .pict-content-code-line-numbers {
-			position: absolute;
-			top: 0;
+			position: sticky;
 			left: 0;
 			width: 40px;
+			min-width: 40px;
 			padding: 1.25em 0;
 			text-align: right;
 			background: #342A22;
@@ -99,6 +100,7 @@ const _ViewConfiguration =
 			user-select: none;
 			pointer-events: none;
 			box-sizing: border-box;
+			z-index: 1;
 		}
 		.pict-content-code-wrap .pict-content-code-line-numbers span {
 			display: block;
@@ -108,11 +110,13 @@ const _ViewConfiguration =
 			margin: 0;
 			background: #3D3229;
 			color: #E8E0D4;
-			padding: 1.25em 1.25em 1.25em 52px;
-			border-radius: 6px;
+			padding: 1.25em 1.25em 1.25em 8px;
+			border-radius: 0 6px 6px 0;
 			overflow-x: auto;
 			line-height: 1.5;
 			font-size: inherit;
+			flex: 1;
+			min-width: 0;
 		}
 		.pict-content-code-wrap pre code {
 			background: none;
