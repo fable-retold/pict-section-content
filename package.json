@@ -26,8 +26,8 @@
 		"pict-view": "^1.0.67"
 	},
 	"devDependencies": {
-		"pict": "^1.0.350",
-		"quackage": "^1.0.59"
+		"pict": "^1.0.357",
+		"quackage": "^1.0.64"
 	},
 	"mocha": {
 		"diff": true,
