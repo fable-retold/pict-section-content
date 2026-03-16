@@ -81,13 +81,11 @@ const _ViewConfiguration =
 			font-size: 14px;
 			line-height: 1.5;
 			border-radius: 6px;
-			overflow: auto;
+			overflow: hidden;
 			margin: 1em 0;
 			background: #3D3229;
 		}
 		.pict-content-code-wrap .pict-content-code-line-numbers {
-			position: sticky;
-			left: 0;
 			width: 40px;
 			min-width: 40px;
 			padding: 1.25em 0;
@@ -100,7 +98,6 @@ const _ViewConfiguration =
 			user-select: none;
 			pointer-events: none;
 			box-sizing: border-box;
-			z-index: 1;
 		}
 		.pict-content-code-wrap .pict-content-code-line-numbers span {
 			display: block;
