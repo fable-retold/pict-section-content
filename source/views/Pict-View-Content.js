@@ -190,9 +190,27 @@ const _ViewConfiguration =
 		}
 		.pict-content pre.mermaid {
 			background: #fff;
-			color: #3D3229;
+			color: #2A241E;
 			text-align: center;
 			padding: 1em;
+		}
+		.pict-content pre.mermaid text,
+		.pict-content pre.mermaid .nodeLabel,
+		.pict-content pre.mermaid .edgeLabel,
+		.pict-content pre.mermaid .label,
+		.pict-content pre.mermaid .cluster-label,
+		.pict-content pre.mermaid span,
+		.pict-content pre.mermaid foreignObject p,
+		.pict-content pre.mermaid foreignObject div,
+		.pict-content pre.mermaid foreignObject span {
+			color: #2A241E !important;
+			fill: #2A241E !important;
+		}
+		.pict-content pre.mermaid .edgePath .path {
+			stroke: #5E5549 !important;
+		}
+		.pict-content pre.mermaid .arrowheadPath {
+			fill: #5E5549 !important;
 		}
 		.pict-content .pict-content-katex-display {
 			text-align: center;
