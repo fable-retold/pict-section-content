@@ -1,7 +1,7 @@
 {
 	"Name": "pict-section-content",
-	"Version": "0.0.12",
+	"Version": "0.1.1",
 	"Description": "Pict content rendering section - markdown parsing, Mermaid diagrams, and KaTeX equations",
-	"GeneratedAt": "2026-04-10T02:05:56.088Z",
-	"GitCommit": "d79d4ca"
+	"GeneratedAt": "2026-04-10T03:20:37.052Z",
+	"GitCommit": "98a062d"
 }
