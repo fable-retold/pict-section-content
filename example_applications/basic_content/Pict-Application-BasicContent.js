@@ -23,6 +23,11 @@ class BasicContentApplication extends libPictApplication
 		this.pict.views.BasicContent.render();
 		this.pict.views.BasicContent.displayContent(tmpHTML);
 
+		// Flush all registered view CSS into the PICT-CSS style element.
+		// pict-view's addCSS only registers the CSS strings; they have to be
+		// explicitly injected into the DOM.
+		this.pict.CSSMap.injectCSS();
+
 		return super.onAfterInitializeAsync(fCallback);
 	}
 

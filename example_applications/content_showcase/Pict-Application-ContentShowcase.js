@@ -23,6 +23,14 @@ class ContentShowcaseApplication extends libPictApplication
 		this.pict.views.ShowcaseNavigation.render();
 		this.showExample('ShowcaseHeadings');
 
+		// Flush all registered view CSS into the PICT-CSS style element.
+		// pict-view's addCSS only registers the CSS strings; they have to be
+		// explicitly injected into the DOM (pict-docuserve does the same
+		// from its layout's onAfterRender).  Without this call,
+		// pict-section-content's code block styling, line numbers, and the
+		// fullscreen overlay are never styled on the page.
+		this.pict.CSSMap.injectCSS();
+
 		return super.onAfterInitializeAsync(fCallback);
 	}
 
