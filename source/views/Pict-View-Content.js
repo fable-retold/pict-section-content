@@ -882,6 +882,7 @@ class PictContentView extends libPictView
 			translateX: 0,
 			translateY: 0,
 			isPanning: false,
+			didPan: false,
 			panStartX: 0,
 			panStartY: 0,
 			panOrigX: 0,
@@ -967,9 +968,16 @@ class PictContentView extends libPictView
 		};
 
 		// Backdrop click closes (only when clicking the backdrop itself or
-		// the stage area, not the inner content).
+		// the stage area, not the inner content).  Suppress if a
+		// drag-to-pan just finished — the pointerup that ended the pan
+		// also fires a click event which we must ignore.
 		tmpOverlay.addEventListener('click', (pEvent) =>
 		{
+			if (tmpState.didPan)
+			{
+				tmpState.didPan = false;
+				return;
+			}
 			if (pEvent.target === tmpOverlay || pEvent.target === tmpStage)
 			{
 				fClose();
@@ -1047,6 +1055,10 @@ class PictContentView extends libPictView
 				return;
 			}
 			tmpState.isPanning = false;
+			// Flag that a pan just ended so the subsequent click event
+			// (which the browser fires after pointerup) does not close
+			// the overlay via the backdrop-close handler.
+			tmpState.didPan = true;
 			tmpStage.classList.remove('is-panning');
 			try { tmpStage.releasePointerCapture(pEvent.pointerId); } catch (e) {}
 		};
