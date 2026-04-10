@@ -883,6 +883,7 @@ class PictContentView extends libPictView
 			translateY: 0,
 			isPanning: false,
 			didPan: false,
+			currentKind: '',
 			panStartX: 0,
 			panStartY: 0,
 			panOrigX: 0,
@@ -1010,18 +1011,28 @@ class PictContentView extends libPictView
 			});
 		});
 
-		// Wheel zoom
+		// Wheel zoom — for images and mermaid diagrams.
+		// For code blocks, let the browser handle native scrolling
+		// so the user can scroll through long code.
 		tmpStage.addEventListener('wheel', (pEvent) =>
 		{
+			if (tmpState.currentKind === 'code')
+			{
+				return;
+			}
 			pEvent.preventDefault();
 			let tmpDelta = -pEvent.deltaY;
 			let tmpStep = (tmpDelta > 0 ? 1 : -1) * 0.15;
 			fZoomAt(tmpState.scale + tmpStep, pEvent.clientX, pEvent.clientY);
 		}, { passive: false });
 
-		// Drag-to-pan when zoomed
+		// Drag-to-pan when zoomed (not for code blocks — they scroll natively)
 		tmpStage.addEventListener('pointerdown', (pEvent) =>
 		{
+			if (tmpState.currentKind === 'code')
+			{
+				return;
+			}
 			if (tmpState.scale <= 1.001)
 			{
 				return;
@@ -1118,6 +1129,7 @@ class PictContentView extends libPictView
 				tmpContent.innerHTML = '';
 
 				let tmpKind = pSourceEl.getAttribute('data-fullscreen-source');
+				tmpState.currentKind = tmpKind || '';
 				let tmpClone;
 				if (tmpKind === 'mermaid')
 				{
@@ -1148,6 +1160,13 @@ class PictContentView extends libPictView
 					tmpClone.classList.add('pict-fullscreen-codewrap');
 				}
 				tmpContent.appendChild(tmpClone);
+
+				// Hide zoom controls for code blocks (they scroll natively)
+				let tmpZoomBtns = tmpOverlay.querySelectorAll('[data-action="zoom-in"], [data-action="zoom-out"], [data-action="zoom-reset"]');
+				for (let i = 0; i < tmpZoomBtns.length; i++)
+				{
+					tmpZoomBtns[i].style.display = (tmpKind === 'code') ? 'none' : '';
+				}
 
 				fResetTransform();
 				tmpOverlay.removeAttribute('hidden');
