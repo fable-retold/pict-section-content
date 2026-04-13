@@ -74,9 +74,10 @@ class PictContentProvider extends libPictProvider
 	 * @param {string} pMarkdown - The raw markdown text
 	 * @param {Function} [pLinkResolver] - Optional callback for link resolution: (pHref, pLinkText) => { href, target, rel } or null
 	 * @param {Function} [pImageResolver] - Optional callback for image URL resolution: (pSrc, pAlt) => resolvedSrc or null
+	 * @param {Function} [pVocabularyResolver] - Optional callback: (pWord) => { slug, title, short } or null. Passed through to parseInline() for vocabulary term auto-linking.
 	 * @returns {string} The parsed HTML
 	 */
-	parseMarkdown(pMarkdown, pLinkResolver, pImageResolver)
+	parseMarkdown(pMarkdown, pLinkResolver, pImageResolver, pVocabularyResolver)
 	{
 		if (!pMarkdown)
 		{
@@ -102,7 +103,7 @@ class PictContentProvider extends libPictProvider
 		{
 			if (tmpParagraphLines.length > 0)
 			{
-				tmpHTML.push('<p>' + tmpParagraphLines.map((pLine) => { return this.parseInline(pLine, pLinkResolver, pImageResolver); }).join(' ') + '</p>');
+				tmpHTML.push('<p>' + tmpParagraphLines.map((pLine) => { return this.parseInline(pLine, pLinkResolver, pImageResolver, pVocabularyResolver); }).join(' ') + '</p>');
 				tmpParagraphLines = [];
 			}
 		};
@@ -133,7 +134,7 @@ class PictContentProvider extends libPictProvider
 					}
 					if (tmpInBlockquote)
 					{
-						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
+						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver, pVocabularyResolver) + '</blockquote>');
 						tmpInBlockquote = false;
 						tmpBlockquoteLines = [];
 					}
@@ -197,7 +198,7 @@ class PictContentProvider extends libPictProvider
 					}
 					if (tmpInBlockquote)
 					{
-						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
+						tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver, pVocabularyResolver) + '</blockquote>');
 						tmpInBlockquote = false;
 						tmpBlockquoteLines = [];
 					}
@@ -236,7 +237,7 @@ class PictContentProvider extends libPictProvider
 			}
 			else if (tmpInBlockquote)
 			{
-				tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
+				tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver, pVocabularyResolver) + '</blockquote>');
 				tmpInBlockquote = false;
 				tmpBlockquoteLines = [];
 			}
@@ -265,7 +266,7 @@ class PictContentProvider extends libPictProvider
 					tmpInList = false;
 				}
 				let tmpLevel = tmpHeadingMatch[1].length;
-				let tmpText = this.parseInline(tmpHeadingMatch[2], pLinkResolver, pImageResolver);
+				let tmpText = this.parseInline(tmpHeadingMatch[2], pLinkResolver, pImageResolver, pVocabularyResolver);
 				let tmpID = tmpHeadingMatch[2].toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
 				tmpHTML.push('<h' + tmpLevel + ' id="' + tmpID + '">' + tmpText + '</h' + tmpLevel + '>');
 				continue;
@@ -286,7 +287,7 @@ class PictContentProvider extends libPictProvider
 					tmpInList = true;
 					tmpListType = 'ul';
 				}
-				tmpHTML.push('<li>' + this.parseInline(tmpULMatch[2], pLinkResolver, pImageResolver) + '</li>');
+				tmpHTML.push('<li>' + this.parseInline(tmpULMatch[2], pLinkResolver, pImageResolver, pVocabularyResolver) + '</li>');
 				continue;
 			}
 
@@ -305,7 +306,7 @@ class PictContentProvider extends libPictProvider
 					tmpInList = true;
 					tmpListType = 'ol';
 				}
-				tmpHTML.push('<li>' + this.parseInline(tmpOLMatch[2], pLinkResolver, pImageResolver) + '</li>');
+				tmpHTML.push('<li>' + this.parseInline(tmpOLMatch[2], pLinkResolver, pImageResolver, pVocabularyResolver) + '</li>');
 				continue;
 			}
 
@@ -341,7 +342,7 @@ class PictContentProvider extends libPictProvider
 				tmpTableHTML += '<thead><tr>';
 				for (let h = 0; h < tmpHeaders.length; h++)
 				{
-					tmpTableHTML += '<th>' + this.parseInline(tmpHeaders[h].trim(), pLinkResolver, pImageResolver) + '</th>';
+					tmpTableHTML += '<th>' + this.parseInline(tmpHeaders[h].trim(), pLinkResolver, pImageResolver, pVocabularyResolver) + '</th>';
 				}
 				tmpTableHTML += '</tr></thead>';
 
@@ -357,7 +358,7 @@ class PictContentProvider extends libPictProvider
 					tmpTableHTML += '<tr>';
 					for (let c = 0; c < tmpCells.length; c++)
 					{
-						tmpTableHTML += '<td>' + this.parseInline(tmpCells[c].trim(), pLinkResolver, pImageResolver) + '</td>';
+						tmpTableHTML += '<td>' + this.parseInline(tmpCells[c].trim(), pLinkResolver, pImageResolver, pVocabularyResolver) + '</td>';
 					}
 					tmpTableHTML += '</tr>';
 				}
@@ -381,7 +382,7 @@ class PictContentProvider extends libPictProvider
 		}
 		if (tmpInBlockquote)
 		{
-			tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver) + '</blockquote>');
+			tmpHTML.push('<blockquote>' + this.parseMarkdown(tmpBlockquoteLines.join('\n'), pLinkResolver, pImageResolver, pVocabularyResolver) + '</blockquote>');
 		}
 		if (tmpInCodeBlock)
 		{
@@ -400,9 +401,10 @@ class PictContentProvider extends libPictProvider
 	 * @param {string} pText - The text to parse
 	 * @param {Function} [pLinkResolver] - Optional callback: (pHref, pLinkText) => { href, target, rel } or null
 	 * @param {Function} [pImageResolver] - Optional callback: (pSrc, pAlt) => resolvedSrc or null
+	 * @param {Function} [pVocabularyResolver] - Optional callback: (pWord) => { slug, title, short } or null. When provided, known vocabulary terms in the rendered text are wrapped in <span class="pict-vocab-term"> with data attributes carrying the popover content.
 	 * @returns {string} HTML with inline elements
 	 */
-	parseInline(pText, pLinkResolver, pImageResolver)
+	parseInline(pText, pLinkResolver, pImageResolver, pVocabularyResolver)
 	{
 		if (!pText)
 		{
@@ -476,7 +478,99 @@ class PictContentProvider extends libPictProvider
 			return tmpCodeSpans[parseInt(pIndex)];
 		});
 
+		// Vocabulary term auto-linking: scan the rendered text for
+		// known vocabulary terms and wrap each first occurrence in a
+		// span with data attributes for the popover system. Skips
+		// content inside <code>, <a>, <pre>, and <strong> tags to
+		// avoid mangling links, code, or already-emphasized text.
+		if (typeof pVocabularyResolver === 'function')
+		{
+			tmpResult = this._applyVocabularyLinks(tmpResult, pVocabularyResolver);
+		}
+
 		return tmpResult;
+	}
+
+	/**
+	 * Scan HTML for vocabulary terms and wrap the first occurrence
+	 * of each in a <span class="pict-vocab-term"> element. The
+	 * resolver callback is called for each candidate word/phrase
+	 * and returns { slug, title, short } if it's a known term.
+	 *
+	 * Skips content inside HTML tags to avoid breaking links,
+	 * code spans, and other markup.
+	 *
+	 * @param {string} pHTML
+	 * @param {Function} pResolver - (word) => {slug, title, short} | null
+	 * @returns {string}
+	 */
+	_applyVocabularyLinks(pHTML, pResolver)
+	{
+		if (!pHTML || typeof pResolver !== 'function')
+		{
+			return pHTML;
+		}
+
+		// Track which terms we've already linked to avoid duplicate
+		// links for the same term appearing multiple times.
+		let tmpLinked = {};
+
+		// Split the HTML into segments: tags vs text nodes. We only
+		// scan text nodes for vocabulary terms; tags pass through.
+		// This regex captures HTML tags as separators.
+		let tmpParts = pHTML.split(/(<[^>]+>)/g);
+
+		// Track whether we're inside a tag that should be skipped
+		let tmpSkipDepth = 0;
+		let tmpSkipTags = ['code', 'a', 'pre', 'span'];
+
+		for (let i = 0; i < tmpParts.length; i++)
+		{
+			let tmpPart = tmpParts[i];
+
+			// Check if this is an HTML tag
+			if (tmpPart.charAt(0) === '<')
+			{
+				// Opening tag?
+				let tmpOpenMatch = tmpPart.match(/^<(\w+)/);
+				if (tmpOpenMatch && tmpSkipTags.indexOf(tmpOpenMatch[1].toLowerCase()) !== -1)
+				{
+					tmpSkipDepth++;
+				}
+				// Closing tag?
+				let tmpCloseMatch = tmpPart.match(/^<\/(\w+)/);
+				if (tmpCloseMatch && tmpSkipTags.indexOf(tmpCloseMatch[1].toLowerCase()) !== -1)
+				{
+					tmpSkipDepth = Math.max(0, tmpSkipDepth - 1);
+				}
+				continue; // Don't modify tags
+			}
+
+			// Skip text inside protected elements
+			if (tmpSkipDepth > 0) continue;
+
+			// Scan this text node for vocabulary terms. Use word
+			// boundary regex to match whole words only.
+			tmpParts[i] = tmpPart.replace(/\b([A-Za-z][A-Za-z0-9_-]{1,30})\b/g, (pMatch, pWord) =>
+			{
+				// Skip very short words and common English words
+				if (pWord.length < 3) return pMatch;
+
+				let tmpLower = pWord.toLowerCase();
+				if (tmpLinked[tmpLower]) return pMatch; // already linked
+
+				let tmpResult = pResolver(tmpLower);
+				if (!tmpResult) return pMatch;
+
+				tmpLinked[tmpLower] = true;
+				let tmpShortEsc = (tmpResult.short || '').replace(/"/g, '&quot;');
+				return '<span class="pict-vocab-term" data-vocab-slug="' + tmpResult.slug +
+					'" data-vocab-title="' + (tmpResult.title || '').replace(/"/g, '&quot;') +
+					'" data-vocab-short="' + tmpShortEsc + '">' + pMatch + '</span>';
+			});
+		}
+
+		return tmpParts.join('');
 	}
 
 	/**
