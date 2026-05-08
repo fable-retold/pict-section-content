@@ -189,7 +189,7 @@ const _ViewConfiguration =
 			height: auto;
 		}
 		.pict-content pre.mermaid {
-			background: #fff;
+			background: var(--theme-color-background-panel, #fff);
 			color: var(--theme-color-text-primary, #2A241E);
 			text-align: center;
 			padding: 1em;

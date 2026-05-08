@@ -15,8 +15,8 @@
 
 			/* --- Header Bar --- */
 			.pict-example-header { display: flex; align-items: stretch; background: #264653; border-bottom: 3px solid #E76F51; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
-			.pict-example-badge { background: #E76F51; color: #fff; padding: 0.6rem 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; }
-			.pict-example-badge svg { width: 14px; height: 14px; fill: #fff; flex-shrink: 0; }
+			.pict-example-badge { background: #E76F51; color: var(--theme-color-background-panel, #fff); padding: 0.6rem 1rem; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; }
+			.pict-example-badge svg { width: 14px; height: 14px; fill: var(--theme-color-background-panel, #fff); flex-shrink: 0; }
 			.pict-example-app-name { padding: 0.6rem 1rem; color: #FAEDCD; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; }
 			.pict-example-module { margin-left: auto; padding: 0.6rem 1rem; color: #D4A373; font-size: 0.75rem; display: flex; align-items: center; letter-spacing: 0.03em; }
 
@@ -60,7 +60,7 @@
 			}
 			.showcase-nav-link:hover {
 				background: rgba(250,237,205,0.1);
-				color: #fff;
+				color: var(--theme-color-background-panel, #fff);
 			}
 			.showcase-nav-link.active {
 				background: rgba(231,111,81,0.15);
@@ -76,7 +76,7 @@
 				padding: 1.5rem;
 			}
 			#Showcase-Content-Container {
-				background: #fff;
+				background: var(--theme-color-background-panel, #fff);
 				border: 1px solid #D4A373;
 				border-top: 4px solid #E76F51;
 				border-radius: 6px;
