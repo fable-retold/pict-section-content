@@ -21,14 +21,14 @@
 	},
 	"homepage": "https://github.com/stevenvelozo/pict-section-content#readme",
 	"dependencies": {
-		"pict-provider": "^1.0.12",
-		"pict-section-code": "^1.0.4",
+		"pict-provider": "^1.0.13",
+		"pict-section-code": "^1.0.6",
 		"pict-view": "^1.0.68"
 	},
 	"devDependencies": {
-		"pict": "^1.0.365",
-		"pict-docuserve": "^0.1.5",
-		"quackage": "^1.2.2"
+		"pict": "^1.0.367",
+		"pict-docuserve": "^0.1.6",
+		"quackage": "^1.2.3"
 	},
 	"mocha": {
 		"diff": true,
