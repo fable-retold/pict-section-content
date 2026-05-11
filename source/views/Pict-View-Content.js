@@ -507,6 +507,133 @@ class PictContentView extends libPictView
 	}
 
 	/**
+	 * Initialize Mermaid with theme variables read from the active
+	 * pict-provider-theme palette. Mermaid's `base` theme honors
+	 * `themeVariables`, so the diagram colors (node fills, cluster
+	 * backgrounds, edges, labels) follow whatever theme is applied.
+	 *
+	 * Idempotent and cheap. Called lazily before the first
+	 * `mermaid.run()` and again from the onApply subscription when
+	 * the user switches themes.
+	 */
+	_initializeMermaidTheme()
+	{
+		if (typeof mermaid === 'undefined' || typeof window === 'undefined') { return; }
+		let tmpCs = getComputedStyle(document.documentElement);
+		let tmpVar = (pName, pFallback) =>
+		{
+			let tmpVal = (tmpCs.getPropertyValue(pName) || '').trim();
+			return tmpVal || pFallback;
+		};
+		// Read every token Mermaid 'base' actually consumes. Falling
+		// back to the retold-content-system warm-beige hexes keeps the
+		// diagram readable even if the theme provider isn't installed.
+		try
+		{
+			mermaid.initialize(
+			{
+				startOnLoad: false,
+				theme: 'base',
+				securityLevel: 'loose',
+				themeVariables:
+				{
+					// Primary surfaces (node fills + cluster background)
+					primaryColor:        tmpVar('--theme-color-background-panel',    '#FAF8F4'),
+					primaryTextColor:    tmpVar('--theme-color-text-primary',       '#3D3229'),
+					primaryBorderColor:  tmpVar('--theme-color-brand-primary',      '#2E7D74'),
+					// Secondary (alt rows, alternate nodes, sequence actor bg)
+					secondaryColor:      tmpVar('--theme-color-background-secondary', '#F0EDE8'),
+					secondaryTextColor:  tmpVar('--theme-color-text-secondary',     '#5E5549'),
+					secondaryBorderColor:tmpVar('--theme-color-border-default',     '#DDD6CA'),
+					// Tertiary (clusters, accent groups)
+					tertiaryColor:       tmpVar('--theme-color-background-tertiary',  '#EDE9E3'),
+					tertiaryTextColor:   tmpVar('--theme-color-text-secondary',     '#5E5549'),
+					tertiaryBorderColor: tmpVar('--theme-color-border-light',       '#E8E2D7'),
+					// Page-level + line + note
+					background:          tmpVar('--theme-color-background-panel',    '#FAF8F4'),
+					mainBkg:             tmpVar('--theme-color-background-panel',    '#FAF8F4'),
+					secondBkg:           tmpVar('--theme-color-background-secondary', '#F0EDE8'),
+					lineColor:           tmpVar('--theme-color-text-secondary',     '#5E5549'),
+					textColor:           tmpVar('--theme-color-text-primary',       '#3D3229'),
+					noteBkgColor:        tmpVar('--theme-color-background-tertiary',  '#EDE9E3'),
+					noteTextColor:       tmpVar('--theme-color-text-primary',       '#3D3229'),
+					noteBorderColor:     tmpVar('--theme-color-border-default',     '#DDD6CA'),
+					// Status (Mermaid uses these for error/warning highlights)
+					errorBkgColor:       tmpVar('--theme-color-status-error',       '#D9534F'),
+					errorTextColor:      tmpVar('--theme-color-text-on-brand',     '#FFFFFF'),
+					// Typography
+					fontFamily:          tmpVar('--theme-typography-family-sans', 'inherit')
+				}
+			});
+		}
+		catch (pError)
+		{
+			if (this.log && this.log.warn) { this.log.warn('Mermaid theme init failed: ' + pError.message); }
+		}
+	}
+
+	/**
+	 * Subscribe to pict-provider-theme apply events so Mermaid diagrams
+	 * re-render with the new palette on theme change. Idempotent — safe
+	 * to call multiple times. Falls through silently when the provider
+	 * isn't installed (apps using pict-section-content without
+	 * pict-provider-theme still get the static base theme).
+	 */
+	_subscribeToThemeChanges()
+	{
+		if (this._mermaidThemeSubscribed) { return; }
+		let tmpProvider = this.pict && this.pict.providers && this.pict.providers.Theme;
+		if (!tmpProvider || typeof tmpProvider.onApply !== 'function') { return; }
+		let tmpSelf = this;
+		tmpProvider.onApply(function ()
+		{
+			tmpSelf._initializeMermaidTheme();
+			tmpSelf._refreshMermaidDiagrams();
+		});
+		this._mermaidThemeSubscribed = true;
+	}
+
+	/**
+	 * Re-render every Mermaid diagram on the page using its cached
+	 * source. Called after a theme change so the new themeVariables
+	 * take effect on already-displayed diagrams.
+	 *
+	 * Mermaid replaces `pre.mermaid`'s textContent with the rendered
+	 * SVG during `mermaid.run()`. To re-render we need the original
+	 * source, which `renderMermaidDiagrams` stashes on each element
+	 * as `data-mermaid-source` BEFORE running. This method restores
+	 * that source, drops the `data-processed` flag, and re-runs.
+	 */
+	_refreshMermaidDiagrams()
+	{
+		if (typeof mermaid === 'undefined' || typeof document === 'undefined') { return; }
+		let tmpRendered = document.querySelectorAll('pre.mermaid[data-mermaid-source]');
+		if (tmpRendered.length < 1) { return; }
+		for (let i = 0; i < tmpRendered.length; i++)
+		{
+			let tmpEl = tmpRendered[i];
+			tmpEl.textContent = tmpEl.getAttribute('data-mermaid-source');
+			tmpEl.removeAttribute('data-processed');
+			tmpEl.classList.remove('mermaid-rendered');
+		}
+		try
+		{
+			let tmpResult = mermaid.run({ nodes: tmpRendered });
+			if (tmpResult && typeof tmpResult.catch === 'function')
+			{
+				tmpResult.catch((pError) =>
+				{
+					if (this.log && this.log.warn) { this.log.warn('Mermaid re-render failed: ' + (pError && pError.message ? pError.message : pError)); }
+				});
+			}
+		}
+		catch (pError)
+		{
+			if (this.log && this.log.warn) { this.log.warn('Mermaid re-render failed: ' + pError.message); }
+		}
+	}
+
+	/**
 	 * Render any Mermaid diagram blocks in the content area.
 	 * Mermaid blocks are `<pre class="mermaid">` elements produced by parseMarkdown.
 	 *
@@ -530,6 +657,24 @@ class PictContentView extends libPictView
 		if (tmpMermaidElements.length < 1)
 		{
 			return;
+		}
+
+		// First-time setup: apply theme variables and subscribe to
+		// theme apply events so diagrams re-render on theme change.
+		this._initializeMermaidTheme();
+		this._subscribeToThemeChanges();
+
+		// Cache each diagram's source on the element so theme-change
+		// re-renders can restore it. Mermaid replaces textContent with
+		// the rendered SVG during run(), so we lose the source unless
+		// we stash it here first.
+		for (let i = 0; i < tmpMermaidElements.length; i++)
+		{
+			let tmpEl = tmpMermaidElements[i];
+			if (!tmpEl.hasAttribute('data-mermaid-source'))
+			{
+				tmpEl.setAttribute('data-mermaid-source', tmpEl.textContent);
+			}
 		}
 
 		// mermaid.run() will process all pre.mermaid elements in the container.
