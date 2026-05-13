@@ -58,41 +58,58 @@ const _ViewConfiguration =
 		.pict-content a:hover {
 			text-decoration: underline;
 		}
+		/* ─── Code blocks ─────────────────────────────────────
+		   Background, text color, line-number gutter, and every
+		   syntax token route through pict-provider-theme tokens —
+		   the same set pict-section-code (the live editor) uses.
+		   This way the rendered-preview code blocks look identical
+		   to the live editor and re-skin together when the theme
+		   switches.  Previous version used the text-primary token
+		   as the code background (a TEXT token used as BACKGROUND),
+		   which broke in dark mode and any palette where text and
+		   background-tertiary diverge.
+		*/
 		.pict-content pre {
-			background: var(--theme-color-text-primary, #3D3229);
-			color: var(--theme-color-text-on-brand, #E8E0D4);
+			background:    var(--theme-color-background-tertiary, #F0ECE4);
+			color:         var(--theme-color-text-primary,        #3D3229);
+			border:        1px solid var(--theme-color-border-default, #DDD6CA);
 			padding: 1.25em;
 			border-radius: 6px;
 			overflow-x: auto;
 			line-height: 1.5;
 			font-size: 0.9em;
+			font-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace);
 		}
+		/* Inline code (single backtick) — slightly differentiated
+		   from block code so it doesn't disappear into prose. */
 		.pict-content code {
-			background: var(--theme-color-background-tertiary, #F0ECE4);
+			background:    var(--theme-color-background-secondary, #FAF8F4);
+			color:         var(--theme-color-text-primary,         #3D3229);
 			padding: 0.15em 0.4em;
 			border-radius: 3px;
 			font-size: 0.9em;
-			color: var(--theme-color-brand-accent, #9E6B47);
+			font-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', monospace);
 		}
 		.pict-content-code-wrap {
 			display: flex;
 			flex-direction: row;
-			font-family: 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+			font-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace);
 			font-size: 14px;
 			line-height: 1.5;
+			border: 1px solid var(--theme-color-border-default, #DDD6CA);
 			border-radius: 6px;
 			overflow: hidden;
 			margin: 1em 0;
-			background: var(--theme-color-text-primary, #3D3229);
+			background: var(--theme-color-background-tertiary, #F0ECE4);
 		}
 		.pict-content-code-wrap .pict-content-code-line-numbers {
 			width: 40px;
 			min-width: 40px;
 			padding: 1.25em 0;
 			text-align: right;
-			background: var(--theme-color-background-tertiary, #342A22);
-			border-right: 1px solid var(--theme-color-border-default, #4A3F35);
-			color: var(--theme-color-text-muted, #8A7F72);
+			background:    var(--theme-color-background-secondary, #FAF8F4);
+			border-right:  1px solid var(--theme-color-border-default, #DDD6CA);
+			color:         var(--theme-color-text-muted,           #8A7F72);
 			font-family: inherit;
 			font-size: inherit;
 			line-height: inherit;
@@ -106,8 +123,9 @@ const _ViewConfiguration =
 		}
 		.pict-content-code-wrap pre {
 			margin: 0;
-			background: var(--theme-color-text-primary, #3D3229);
-			color: var(--theme-color-text-on-brand, #E8E0D4);
+			background: var(--theme-color-background-tertiary, #F0ECE4);
+			color:      var(--theme-color-text-primary,        #3D3229);
+			border: none;
 			padding: 1.25em 1.25em 1.25em 8px;
 			border-radius: 0 6px 6px 0;
 			overflow-x: auto;
@@ -123,17 +141,26 @@ const _ViewConfiguration =
 			font-size: inherit;
 			font-family: inherit;
 		}
-		.pict-content-code-wrap .keyword       { color: var(--theme-color-brand-primary,  #C678DD); }
-		.pict-content-code-wrap .string        { color: var(--theme-color-status-success, #98C379); }
-		.pict-content-code-wrap .number        { color: var(--theme-color-brand-accent,   #D19A66); }
-		.pict-content-code-wrap .comment       { color: var(--theme-color-text-muted,     #7F848E); font-style: italic; }
-		.pict-content-code-wrap .operator      { color: var(--theme-color-status-info,    #56B6C2); }
-		.pict-content-code-wrap .punctuation   { color: var(--theme-color-text-on-brand,  #E8E0D4); }
-		.pict-content-code-wrap .function-name { color: var(--theme-color-brand-primary,  #61AFEF); }
-		.pict-content-code-wrap .property      { color: var(--theme-color-status-error,   #E06C75); }
-		.pict-content-code-wrap .tag           { color: var(--theme-color-status-error,   #E06C75); }
-		.pict-content-code-wrap .attr-name     { color: var(--theme-color-brand-accent,   #D19A66); }
-		.pict-content-code-wrap .attr-value    { color: var(--theme-color-status-success, #98C379); }
+		/* Syntax token colors — every class binds to a --theme-color-syntax-*
+		   variable, the same tokens pict-section-code (the live editor) uses.
+		   Each var() carries an Atom One Light hex as fallback for hosts
+		   without a theme provider; themes that DO ship syntax tokens
+		   (retold-default, retold-content-system, etc.) drive everything
+		   coherently. */
+		.pict-content-code-wrap .keyword       { color: var(--theme-color-syntax-keyword,     #A626A4); }
+		.pict-content-code-wrap .string        { color: var(--theme-color-syntax-string,      #50A14F); }
+		.pict-content-code-wrap .number        { color: var(--theme-color-syntax-number,      #986801); }
+		.pict-content-code-wrap .comment       { color: var(--theme-color-syntax-comment,     #A0A1A7); font-style: italic; }
+		.pict-content-code-wrap .operator      { color: var(--theme-color-syntax-operator,    #0184BC); }
+		.pict-content-code-wrap .punctuation   { color: var(--theme-color-syntax-punctuation, #383A42); }
+		.pict-content-code-wrap .function-name { color: var(--theme-color-syntax-function,    #4078F2); }
+		.pict-content-code-wrap .property      { color: var(--theme-color-syntax-property,    #E45649); }
+		.pict-content-code-wrap .tag           { color: var(--theme-color-syntax-tag,         #E45649); }
+		.pict-content-code-wrap .attr-name     { color: var(--theme-color-syntax-attrname,    #986801); }
+		.pict-content-code-wrap .attr-value    { color: var(--theme-color-syntax-attrvalue,   #50A14F); }
+		.pict-content-code-wrap .builtin       { color: var(--theme-color-syntax-builtin,     #986801); }
+		.pict-content-code-wrap .type          { color: var(--theme-color-syntax-type,        #C18401); }
+		.pict-content-code-wrap .variable      { color: var(--theme-color-syntax-variable,    #383A42); }
 		.pict-content pre code {
 			background: none;
 			padding: 0;
