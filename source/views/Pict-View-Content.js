@@ -521,6 +521,16 @@ class PictContentView extends libPictView
 			tmpContentContainer.parentElement.scrollTop = 0;
 		}
 
+		// Ensure the container carries the `.pict-content` class so the
+		// 30+ theme-scoped CSS rules below (`.pict-content a`, `.pict-content
+		// h1`, `.pict-content pre`, ...) actually match when a host passes
+		// a custom container ID.  Idempotent — re-adding the class is a
+		// no-op if it's already there from the host's markup.
+		if (tmpContentContainer && !tmpContentContainer.classList.contains('pict-content'))
+		{
+			tmpContentContainer.classList.add('pict-content');
+		}
+
 		// Tag images and code blocks immediately so they're clickable.
 		// Mermaid blocks are tagged after mermaid.run() resolves (see below).
 		this.enableFullscreenViewers(tmpContainerID, { skipMermaid: true });
