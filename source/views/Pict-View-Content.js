@@ -145,7 +145,7 @@ const _ViewConfiguration =
 		   variable, the same tokens pict-section-code (the live editor) uses.
 		   Each var() carries an Atom One Light hex as fallback for hosts
 		   without a theme provider; themes that DO ship syntax tokens
-		   (retold-default, retold-content-system, etc.) drive everything
+		   (pict-default, retold-content-system, etc.) drive everything
 		   coherently. */
 		.pict-content-code-wrap .keyword       { color: var(--theme-color-syntax-keyword,     #A626A4); }
 		.pict-content-code-wrap .string        { color: var(--theme-color-syntax-string,      #50A14F); }
