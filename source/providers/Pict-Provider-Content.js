@@ -310,6 +310,19 @@ class PictContentProvider extends libPictProvider
 				continue;
 			}
 
+			// Indented continuation line of a wrapped list item — fold its
+			// content into the last <li> instead of closing the list. Closing
+			// here would split a real <ol>/<ul>, and each fragment restarts
+			// ordered numbering. A non-indented non-marker line still closes
+			// the list (handled below); blank lines never reach this branch.
+			if (tmpInList && tmpLine.match(/^\s+\S/) && tmpHTML.length > 0 && tmpHTML[tmpHTML.length - 1].endsWith('</li>'))
+			{
+				let tmpLastIndex = tmpHTML.length - 1;
+				let tmpListItemBody = tmpHTML[tmpLastIndex].slice(0, -'</li>'.length);
+				tmpHTML[tmpLastIndex] = tmpListItemBody + ' ' + this.parseInline(tmpLine.trim(), pLinkResolver, pImageResolver, pVocabularyResolver) + '</li>';
+				continue;
+			}
+
 			// Close list if we've left list items
 			if (tmpInList && tmpLine.trim() !== '')
 			{

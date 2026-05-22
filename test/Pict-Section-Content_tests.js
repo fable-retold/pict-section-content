@@ -158,6 +158,78 @@ suite
 				);
 				test
 				(
+					'parseMarkdown should fold wrapped ordered list item continuation lines into the same <li>.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown(
+							'1. First item with text\n'
+							+ '   that wraps to a second line.\n'
+							+ '2. Second item\n'
+							+ '3. Third item'
+						);
+						// The list must stay a single <ol> so ordered numbering does not restart
+						Expect((tmpResult.match(/<ol>/g) || []).length).to.equal(1);
+						Expect((tmpResult.match(/<\/ol>/g) || []).length).to.equal(1);
+						// The continuation line is folded into the first <li>
+						Expect(tmpResult).to.contain('<li>First item with text that wraps to a second line.</li>');
+						Expect(tmpResult).to.contain('<li>Second item</li>');
+						Expect(tmpResult).to.contain('<li>Third item</li>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should fold wrapped unordered list item continuation lines into the same <li>.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown(
+							'- Bullet one with a long\n'
+							+ '  description that wraps.\n'
+							+ '- Bullet two'
+						);
+						Expect((tmpResult.match(/<ul>/g) || []).length).to.equal(1);
+						Expect((tmpResult.match(/<\/ul>/g) || []).length).to.equal(1);
+						Expect(tmpResult).to.contain('<li>Bullet one with a long description that wraps.</li>');
+						Expect(tmpResult).to.contain('<li>Bullet two</li>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should parse inline markdown inside folded continuation lines.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown(
+							'1. An item whose continuation\n'
+							+ '   has **bold** text.'
+						);
+						Expect(tmpResult).to.contain('<li>An item whose continuation has <strong>bold</strong> text.</li>');
+						fDone();
+					}
+				);
+				test
+				(
+					'parseMarkdown should still close a list on a non-indented non-marker line.',
+					(fDone) =>
+					{
+						var tmpProvider = createProvider();
+						var tmpResult = tmpProvider.parseMarkdown(
+							'1. First\n'
+							+ '2. Second\n'
+							+ 'This is a new paragraph.'
+						);
+						Expect(tmpResult).to.contain('</ol>');
+						Expect(tmpResult).to.contain('<p>This is a new paragraph.</p>');
+						// The trailing paragraph must not be swallowed into the list
+						Expect(tmpResult).to.not.contain('<li>First This is a new paragraph.');
+						fDone();
+					}
+				);
+				test
+				(
 					'parseMarkdown should handle blockquotes.',
 					(fDone) =>
 					{
