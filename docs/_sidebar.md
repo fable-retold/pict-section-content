@@ -8,12 +8,17 @@
 
   - [API Reference](api.md)
 
+- Examples
+
+  - [Basic Content](examples/basic_content/README.md)
+  - [Content Showcase](examples/content_showcase/README.md)
+
 - Retold Ecosystem
 
-  - [Pict](/pict/pict/)
-  - [Pict Application](/pict/pict-application/)
-  - [Pict View](/pict/pict-view/)
-  - [Pict Provider](/pict/pict-provider/)
-  - [Pict Docuserve](/pict/pict-docuserve/)
-  - [Fable](/fable/fable/)
-  - [Fable Service Base](/fable/fable-serviceproviderbase/)
+  - [Pict](https://stevenvelozo.github.io/pict/)
+  - [Pict Application](https://stevenvelozo.github.io/pict-application/)
+  - [Pict View](https://stevenvelozo.github.io/pict-view/)
+  - [Pict Provider](https://stevenvelozo.github.io/pict-provider/)
+  - [Pict Docuserve](https://stevenvelozo.github.io/pict-docuserve/)
+  - [Fable](https://stevenvelozo.github.io/fable/)
+  - [Fable Service Base](https://stevenvelozo.github.io/fable-serviceproviderbase/)

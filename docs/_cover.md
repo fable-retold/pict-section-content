@@ -13,3 +13,10 @@ Parse markdown to HTML with support for code blocks, Mermaid diagrams, KaTeX mat
 [API Reference](api.md)
 [Link Resolver](link-resolver.md)
 [GitHub](https://github.com/stevenvelozo/pict-section-content)
+
+<!-- docuserve:examples:start -->
+| Example | Complexity | Launch |
+|---------|------------|--------|
+| [Basic Content](examples/basic%5Fcontent/README.md) | Basic | [&#9654; Launch](examples/basic%5Fcontent/index.html) |
+| [Content Showcase](examples/content%5Fshowcase/README.md) | Intermediate | [&#9654; Launch](examples/content%5Fshowcase/index.html) |
+<!-- docuserve:examples:end -->

@@ -1,5 +1,5 @@
 {
-	"Generated": "2026-05-22T05:44:36.121Z",
+	"Generated": "2026-05-23T01:49:53.592Z",
 	"Mode": "module",
 	"GitHubOrg": "stevenvelozo",
 	"DefaultBranch": "master",
@@ -38,35 +38,48 @@
 				]
 			},
 			{
+				"Title": "Examples",
+				"Children": [
+					{
+						"Title": "Basic Content",
+						"Path": "examples/basic_content/README.md"
+					},
+					{
+						"Title": "Content Showcase",
+						"Path": "examples/content_showcase/README.md"
+					}
+				]
+			},
+			{
 				"Title": "Retold Ecosystem",
 				"Children": [
 					{
 						"Title": "Pict",
-						"Path": "pict/pict/README.md"
+						"Path": "https://stevenvelozo.github.io/pict/README.md"
 					},
 					{
 						"Title": "Pict Application",
-						"Path": "pict/pict-application/README.md"
+						"Path": "https://stevenvelozo.github.io/pict-application/README.md"
 					},
 					{
 						"Title": "Pict View",
-						"Path": "pict/pict-view/README.md"
+						"Path": "https://stevenvelozo.github.io/pict-view/README.md"
 					},
 					{
 						"Title": "Pict Provider",
-						"Path": "pict/pict-provider/README.md"
+						"Path": "https://stevenvelozo.github.io/pict-provider/README.md"
 					},
 					{
 						"Title": "Pict Docuserve",
-						"Path": "pict/pict-docuserve/README.md"
+						"Path": "https://stevenvelozo.github.io/pict-docuserve/README.md"
 					},
 					{
 						"Title": "Fable",
-						"Path": "fable/fable/README.md"
+						"Path": "https://stevenvelozo.github.io/fable/README.md"
 					},
 					{
 						"Title": "Fable Service Base",
-						"Path": "fable/fable-serviceproviderbase/README.md"
+						"Path": "https://stevenvelozo.github.io/fable-serviceproviderbase/README.md"
 					}
 				]
 			}
@@ -80,6 +93,13 @@
 			"_topbar.md",
 			"_version.json",
 			"api.md",
+			"examples/README.md",
+			"examples/basic_content/README.md",
+			"examples/basic_content/basic_content_application.js",
+			"examples/basic_content/index.html",
+			"examples/content_showcase/README.md",
+			"examples/content_showcase/content_showcase_application.js",
+			"examples/content_showcase/index.html",
 			"extending.md",
 			"index.html",
 			"link-resolver.md",

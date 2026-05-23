@@ -126,5 +126,5 @@ Both are detected at runtime. Without them, content renders normally but diagram
 - [API Reference](api.md) -- Complete method and property documentation
 - [Link Resolver](link-resolver.md) -- Custom link resolution pattern
 - [Extending the View](extending.md) -- Using pict-section-content as a base class
-- [Pict View](/pict/pict-view/) -- View base class documentation
-- [Pict Provider](/pict/pict-provider/) -- Provider base class documentation
+- [Pict View](https://stevenvelozo.github.io/pict-view/) -- View base class documentation
+- [Pict Provider](https://stevenvelozo.github.io/pict-provider/) -- Provider base class documentation

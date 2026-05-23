@@ -10,6 +10,14 @@
 	"author": "steven",
 	"license": "MIT",
 	"devDependencies": {},
+	"retold": {
+		"ExampleApplication": {
+			"Stage": true,
+			"Title": "Content Showcase",
+			"Summary": "Sidebar-navigable catalog of eleven markdown topics covering typography, code highlighting, KaTeX math, Mermaid diagrams, GFM tables, and images.",
+			"Complexity": "Intermediate"
+		}
+	},
 	"copyFilesSettings": {
 		"whenFileExists": "overwrite"
 	},

@@ -10,6 +10,14 @@
 	"author": "steven",
 	"license": "MIT",
 	"devDependencies": {},
+	"retold": {
+		"ExampleApplication": {
+			"Stage": true,
+			"Title": "Basic Content",
+			"Summary": "Renders one markdown document with headings, lists, tables, code blocks, KaTeX equations, and Mermaid diagrams via the provider + view pair.",
+			"Complexity": "Basic"
+		}
+	},
 	"copyFilesSettings": {
 		"whenFileExists": "overwrite"
 	},
