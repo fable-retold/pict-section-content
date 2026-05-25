@@ -239,6 +239,36 @@ const _ViewConfiguration =
 		.pict-content pre.mermaid .arrowheadPath {
 			fill: var(--theme-color-text-secondary, #5E5549) !important;
 		}
+		/* Excalidraw fence placeholders + rendered SVGs */
+		.pict-content .pict-excalidraw-fence {
+			display: block;
+			background: var(--theme-color-background-panel, #fff);
+			border: 1px solid var(--theme-color-border-default, #DDD6CA);
+			border-radius: 4px;
+			padding: 1em;
+			margin: 1em 0;
+			text-align: center;
+		}
+		.pict-content .pict-excalidraw-fence svg {
+			max-width: 100%;
+			height: auto;
+		}
+		.pict-content .pict-excalidraw-fence-loading {
+			color: var(--theme-color-text-secondary, #5E5549);
+			font-style: italic;
+			font-size: 0.9em;
+			padding: 1em;
+		}
+		.pict-content .pict-excalidraw-fence-error {
+			border-color: var(--theme-color-status-error, #D9534F);
+			background: var(--theme-color-background-secondary, #FFF5F5);
+		}
+		.pict-content .pict-excalidraw-fence-error-message {
+			color: var(--theme-color-status-error, #D9534F);
+			font-family: var(--theme-typography-family-mono, monospace);
+			font-size: 0.85em;
+			text-align: left;
+		}
 		.pict-content .pict-content-katex-display {
 			text-align: center;
 			margin: 1em 0;
@@ -539,8 +569,105 @@ class PictContentView extends libPictView
 		// Once mermaid finishes, retag so the rendered SVGs are also clickable.
 		this.renderMermaidDiagrams(tmpContainerID);
 
+		// Post-render: render ```excalidraw fenced scenes if the
+		// pict-section-excalidraw wrapper bundle is loaded.  Each fence
+		// becomes a static SVG (with the scene embedded for re-edit by
+		// retold-content-system).
+		this.renderExcalidrawDiagrams(tmpContainerID);
+
 		// Post-render: render KaTeX equations if katex is available
 		this.renderKaTeXEquations(tmpContainerID);
+	}
+
+	/**
+	 * Render any `.pict-excalidraw-fence` placeholders inside the container
+	 * as static SVGs using the pict-section-excalidraw wrapper bundle's
+	 * exportToSvg helper.  Each fence's scene JSON travels through a
+	 * URI-component-encoded data-scene attribute (placed there by the
+	 * markdown parser in Pict-Provider-Content).
+	 *
+	 * Gracefully degrades when the wrapper bundle isn't on the page:
+	 * leaves the loading placeholder visible with a one-time console hint.
+	 * Idempotent — placeholders carry `data-rendered="true"` after the
+	 * first pass so re-renders don't double-emit.
+	 *
+	 * @param {string} [pContainerID]
+	 */
+	renderExcalidrawDiagrams(pContainerID)
+	{
+		if (typeof document === 'undefined') return;
+
+		let tmpContainerID = pContainerID || 'Pict-Content-Body';
+		let tmpContentBody = document.getElementById(tmpContainerID);
+		if (!tmpContentBody) return;
+
+		let tmpFences = tmpContentBody.querySelectorAll('.pict-excalidraw-fence:not([data-rendered])');
+		if (tmpFences.length < 1) return;
+
+		let tmpVendor = (typeof window !== 'undefined') ? window.PictSectionExcalidrawVendor : null;
+		if (!tmpVendor || typeof tmpVendor.exportToSvg !== 'function')
+		{
+			// Bundle not loaded — leave the placeholder visible.  The host
+			// can load the wrapper bundle and call renderExcalidrawDiagrams
+			// again, or include the script tag in its HTML shell.
+			if (this.log && this.log.warn && !this._excalidrawBundleWarnLogged)
+			{
+				this.log.warn('pict-excalidraw fence(s) found but pict-section-excalidraw wrapper bundle is not loaded — leaving as placeholders.');
+				this._excalidrawBundleWarnLogged = true;
+			}
+			return;
+		}
+
+		for (let i = 0; i < tmpFences.length; i++)
+		{
+			let tmpFence = tmpFences[i];
+			let tmpEncoded = tmpFence.getAttribute('data-scene') || '';
+			let tmpJson = '';
+			try { tmpJson = decodeURIComponent(tmpEncoded); }
+			catch (pErr) { tmpJson = ''; }
+
+			let tmpScene;
+			try { tmpScene = JSON.parse(tmpJson); }
+			catch (pErr)
+			{
+				this._renderExcalidrawFenceError(tmpFence, 'Invalid scene JSON: ' + pErr.message);
+				continue;
+			}
+
+			let tmpExportArgs = {
+				elements: tmpScene.elements || [],
+				appState: Object.assign({ exportEmbedScene: true }, tmpScene.appState || {}),
+				files:    tmpScene.files    || {}
+			};
+
+			tmpVendor.exportToSvg(tmpExportArgs).then((pSvgEl) =>
+			{
+				if (!pSvgEl) return;
+				// Style the SVG to fit the fence's content width while preserving aspect.
+				pSvgEl.removeAttribute('width');
+				pSvgEl.removeAttribute('height');
+				pSvgEl.setAttribute('style', 'max-width: 100%; height: auto;');
+				tmpFence.innerHTML = '';
+				tmpFence.appendChild(pSvgEl);
+				tmpFence.setAttribute('data-rendered', 'true');
+			}).catch((pErr) =>
+			{
+				this._renderExcalidrawFenceError(tmpFence,
+					'Excalidraw render failed: ' + (pErr && pErr.message ? pErr.message : pErr));
+			});
+		}
+	}
+
+	_renderExcalidrawFenceError(pFence, pMessage)
+	{
+		pFence.setAttribute('data-rendered', 'true');
+		pFence.classList.add('pict-excalidraw-fence-error');
+		pFence.innerHTML = '<div class="pict-excalidraw-fence-error-message"></div>';
+		// Use textContent on the inner div so any user-supplied error
+		// substrings (e.g. parser error positions) can't introduce HTML.
+		let tmpMsg = pFence.querySelector('.pict-excalidraw-fence-error-message');
+		if (tmpMsg) tmpMsg.textContent = pMessage;
+		if (this.log && this.log.warn) this.log.warn('pict-excalidraw fence: ' + pMessage);
 	}
 
 	/**

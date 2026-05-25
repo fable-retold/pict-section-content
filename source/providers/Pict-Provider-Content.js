@@ -166,6 +166,24 @@ class PictContentProvider extends libPictProvider
 							// Mermaid diagrams: output raw content for client-side rendering
 							tmpHTML.push('<pre class="mermaid">' + tmpCodeLines.join('\n') + '</pre>');
 						}
+						else if (tmpCodeLang === 'excalidraw')
+						{
+							// Excalidraw scenes: emit a placeholder div with the
+							// scene JSON URI-component encoded into a data
+							// attribute.  Pict-View-Content's
+							// renderExcalidrawDiagrams() swaps these for rendered
+							// SVGs once the wrapper bundle is ready.  We don't
+							// validate the JSON here — invalid fences just stay
+							// as the loading placeholder until the runtime
+							// reports the error.
+							let tmpRawScene = tmpCodeLines.join('\n');
+							let tmpEncoded;
+							try { tmpEncoded = encodeURIComponent(tmpRawScene); }
+							catch (pErr) { tmpEncoded = ''; }
+							tmpHTML.push('<div class="pict-excalidraw-fence" data-scene="' + tmpEncoded + '">' +
+								'<div class="pict-excalidraw-fence-loading">Rendering Excalidraw diagram…</div>' +
+								'</div>');
+						}
 						else
 						{
 							let tmpCodeText = tmpCodeLines.join('\n');
