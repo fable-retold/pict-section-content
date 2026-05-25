@@ -1,0 +1,7 @@
+{
+	"Product": "ContentPlayground",
+	"ContentDemoViewConfig":
+	{
+		"MarkdownDataAddress": "AppData.ContentDemo.Markdown"
+	}
+}

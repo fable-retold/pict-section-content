@@ -1,0 +1,6 @@
+{
+	"Name": "Content Playground",
+	"Hash": "ContentPlayground",
+	"MainViewportViewIdentifier": "ContentDemo",
+	"AutoRenderMainViewportViewAfterInitialize": true
+}
