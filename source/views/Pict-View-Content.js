@@ -240,10 +240,10 @@ const _ViewConfiguration =
 			fill: var(--theme-color-text-secondary, #5E5549) !important;
 		}
 		/* Dark-mode override for handcrafted mermaid diagrams that bake
-		   per-node inline fill colors via `style X fill:#...` directives
+		   per-node inline fill colors via 'style X fill:#...' directives
 		   (common in architecture / module docs, where pastel layer
 		   colors mark visual hierarchy). Mermaid renders those as inline
-		   `style="fill:#..."` SVG attributes — highest specificity, so
+		   style="fill:#..." SVG attributes — highest specificity, so
 		   neither themeVariables nor unflagged CSS can reach them.
 		   In light mode the Material pastels read fine; in dark mode the
 		   same light fills become a high-contrast island on the dark
