@@ -4,4 +4,4 @@
 - [API Reference](api.md)
 - [Link Resolver](link-resolver.md)
 - [Extending](extending.md)
-- [GitHub](https://github.com/stevenvelozo/pict-section-content)
+- [GitHub](https://github.com/fable-retold/pict-section-content)

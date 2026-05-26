@@ -190,7 +190,7 @@ template that emits a static list of `<a onclick>` anchors and a single
 renderable. The view class is the framework default. Onclick handlers are in
 the template HTML (not added via `addEventListener`), so even if the
 navigation re-renders the wiring survives — see the **don't use
-addEventListener** rule in the [pict CLAUDE.md](https://github.com/stevenvelozo/pict-section-content)
+addEventListener** rule in the [pict CLAUDE.md](https://github.com/fable-retold/pict-section-content)
 guide for why this matters.
 
 ---

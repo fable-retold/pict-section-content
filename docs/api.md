@@ -320,4 +320,4 @@ PictContentView inherits the full view interface. Key inherited members:
 | `UUID` | Unique service identifier |
 | `Hash` | Service registry hash |
 
-See [Pict View](https://stevenvelozo.github.io/pict-view/) for the complete view API.
+See [Pict View](https://fable-retold.github.io/pict-view/) for the complete view API.

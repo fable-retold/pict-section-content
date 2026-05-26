@@ -12,7 +12,7 @@ Parse markdown to HTML with support for code blocks, Mermaid diagrams, KaTeX mat
 [Quick Start](README.md)
 [API Reference](api.md)
 [Link Resolver](link-resolver.md)
-[GitHub](https://github.com/stevenvelozo/pict-section-content)
+[GitHub](https://github.com/fable-retold/pict-section-content)
 
 <!-- docuserve:examples:start -->
 | Example | Complexity | Launch |

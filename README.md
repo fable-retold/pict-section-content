@@ -1,6 +1,6 @@
 # Pict Section Content
 
-> **[&#9654; Read the Pict-Section-Content Documentation](https://stevenvelozo.github.io/pict-section-content/)** &mdash; interactive docs with the full API reference.
+> **[&#9654; Read the Pict-Section-Content Documentation](https://fable-retold.github.io/pict-section-content/)** &mdash; interactive docs with the full API reference.
 
 A reusable content rendering section for the Pict ecosystem. Parses markdown to HTML with support for fenced code blocks, Mermaid diagrams, KaTeX math equations, GFM tables, and more. Provides a styled content view with post-render hooks for Mermaid and KaTeX integration.
 
@@ -115,11 +115,11 @@ Content renders without them; diagrams and equations appear as raw text.
 
 ## Part of the Retold Framework
 
-- [pict](https://github.com/stevenvelozo/pict) -- UI framework
-- [pict-view](https://github.com/stevenvelozo/pict-view) -- View base class
-- [pict-provider](https://github.com/stevenvelozo/pict-provider) -- Provider base class
-- [pict-docuserve](https://github.com/stevenvelozo/pict-docuserve) -- Documentation server (uses this module)
-- [fable](https://github.com/stevenvelozo/fable) -- Application services framework
+- [pict](https://github.com/fable-retold/pict) -- UI framework
+- [pict-view](https://github.com/fable-retold/pict-view) -- View base class
+- [pict-provider](https://github.com/fable-retold/pict-provider) -- Provider base class
+- [pict-docuserve](https://github.com/fable-retold/pict-docuserve) -- Documentation server (uses this module)
+- [fable](https://github.com/fable-retold/fable) -- Application services framework
 
 ## Testing
 
@@ -133,9 +133,9 @@ npm run coverage
 
 ## Related Packages
 
-- [pict](https://github.com/stevenvelozo/pict) - MVC application framework
-- [pict-view](https://github.com/stevenvelozo/pict-view) - View base class
-- [pict-provider](https://github.com/stevenvelozo/pict-provider) - Data provider base class
+- [pict](https://github.com/fable-retold/pict) - MVC application framework
+- [pict-view](https://github.com/fable-retold/pict-view) - View base class
+- [pict-provider](https://github.com/fable-retold/pict-provider) - Data provider base class
 
 ## License
 
