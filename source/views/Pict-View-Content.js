@@ -239,6 +239,26 @@ const _ViewConfiguration =
 		.pict-content pre.mermaid .arrowheadPath {
 			fill: var(--theme-color-text-secondary, #5E5549) !important;
 		}
+		/* Dark-mode override for handcrafted mermaid diagrams that bake
+		   per-node inline fill colors via 'style X fill:#...' directives
+		   (common in architecture / module docs, where pastel layer
+		   colors mark visual hierarchy). Mermaid renders those as inline
+		   style="fill:#..." SVG attributes — highest specificity, so
+		   neither themeVariables nor unflagged CSS can reach them.
+		   In light mode the Material pastels read fine; in dark mode the
+		   same light fills become a high-contrast island on the dark
+		   page with unreadable text. Force the fills back to a theme
+		   background so dark-mode reads; light mode is intentionally
+		   unmodified so the per-layer hierarchy is preserved there. */
+		.theme-dark .pict-content pre.mermaid .node rect,
+		.theme-dark .pict-content pre.mermaid .node polygon,
+		.theme-dark .pict-content pre.mermaid .node circle,
+		.theme-dark .pict-content pre.mermaid .node ellipse,
+		.theme-dark .pict-content pre.mermaid .node path,
+		.theme-dark .pict-content pre.mermaid .cluster rect {
+			fill:   var(--theme-color-background-tertiary, #2A241E) !important;
+			stroke: var(--theme-color-border-default,      #5E5549) !important;
+		}
 		/* Excalidraw fence placeholders + rendered SVGs */
 		.pict-content .pict-excalidraw-fence {
 			display: block;
