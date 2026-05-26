@@ -211,15 +211,15 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
         },
         "repository": {
           "type": "git",
-          "url": "https://github.com/fable-retold/fable-serviceproviderbase.git"
+          "url": "https://github.com/stevenvelozo/fable-serviceproviderbase.git"
         },
         "keywords": ["entity", "behavior"],
         "author": "Steven Velozo <steven@velozo.com> (http://velozo.com/)",
         "license": "MIT",
         "bugs": {
-          "url": "https://github.com/fable-retold/fable-serviceproviderbase/issues"
+          "url": "https://github.com/stevenvelozo/fable-serviceproviderbase/issues"
         },
-        "homepage": "https://github.com/fable-retold/fable-serviceproviderbase",
+        "homepage": "https://github.com/stevenvelozo/fable-serviceproviderbase",
         "devDependencies": {
           "@types/mocha": "^10.0.10",
           "fable": "^3.1.62",
@@ -339,14 +339,14 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
         "types": "types/source/Pict-Application.d.ts",
         "repository": {
           "type": "git",
-          "url": "git+https://github.com/fable-retold/pict-application.git"
+          "url": "git+https://github.com/stevenvelozo/pict-application.git"
         },
         "author": "steven velozo <steven@velozo.com>",
         "license": "MIT",
         "bugs": {
-          "url": "https://github.com/fable-retold/pict-application/issues"
+          "url": "https://github.com/stevenvelozo/pict-application/issues"
         },
-        "homepage": "https://github.com/fable-retold/pict-application#readme",
+        "homepage": "https://github.com/stevenvelozo/pict-application#readme",
         "devDependencies": {
           "@eslint/js": "^9.28.0",
           "browser-env": "^3.3.0",
@@ -1630,14 +1630,14 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
         "types": "types/source/Pict-Provider.d.ts",
         "repository": {
           "type": "git",
-          "url": "git+https://github.com/fable-retold/pict-provider.git"
+          "url": "git+https://github.com/stevenvelozo/pict-provider.git"
         },
         "author": "steven velozo <steven@velozo.com>",
         "license": "MIT",
         "bugs": {
-          "url": "https://github.com/fable-retold/pict-provider/issues"
+          "url": "https://github.com/stevenvelozo/pict-provider/issues"
         },
-        "homepage": "https://github.com/fable-retold/pict-provider#readme",
+        "homepage": "https://github.com/stevenvelozo/pict-provider#readme",
         "devDependencies": {
           "@eslint/js": "^9.39.1",
           "eslint": "^9.39.1",
@@ -2979,14 +2979,14 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
         "types": "types/source/Pict-View.d.ts",
         "repository": {
           "type": "git",
-          "url": "git+https://github.com/fable-retold/pict-view.git"
+          "url": "git+https://github.com/stevenvelozo/pict-view.git"
         },
         "author": "steven velozo <steven@velozo.com>",
         "license": "MIT",
         "bugs": {
-          "url": "https://github.com/fable-retold/pict-view/issues"
+          "url": "https://github.com/stevenvelozo/pict-view/issues"
         },
-        "homepage": "https://github.com/fable-retold/pict-view#readme",
+        "homepage": "https://github.com/stevenvelozo/pict-view#readme",
         "devDependencies": {
           "@eslint/js": "^9.39.1",
           "browser-env": "^3.3.0",
@@ -4210,9 +4210,17 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
 
       // The content provider (markdown parsing, HTML escaping)
       module.exports.PictContentProvider = require('./providers/Pict-Provider-Content.js');
+
+      // A thin demo view that auto-registers the provider, reads markdown
+      // from an AppData address, and pushes parsed HTML through the base
+      // view's displayContent pipeline.  Used by the docuserve playground;
+      // host applications can pick it up too if they just want "render this
+      // markdown blob" without writing the parse-and-display glue.
+      module.exports.PictContentDemoView = require('./views/PictView-Content-Demo.js');
     }, {
       "./providers/Pict-Provider-Content.js": 16,
-      "./views/Pict-View-Content.js": 17
+      "./views/Pict-View-Content.js": 17,
+      "./views/PictView-Content-Demo.js": 18
     }],
     16: [function (require, module, exports) {
       const libPictProvider = require('pict-provider');
@@ -4356,6 +4364,23 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
                   if (tmpCodeLang === 'mermaid') {
                     // Mermaid diagrams: output raw content for client-side rendering
                     tmpHTML.push('<pre class="mermaid">' + tmpCodeLines.join('\n') + '</pre>');
+                  } else if (tmpCodeLang === 'excalidraw') {
+                    // Excalidraw scenes: emit a placeholder div with the
+                    // scene JSON URI-component encoded into a data
+                    // attribute.  Pict-View-Content's
+                    // renderExcalidrawDiagrams() swaps these for rendered
+                    // SVGs once the wrapper bundle is ready.  We don't
+                    // validate the JSON here — invalid fences just stay
+                    // as the loading placeholder until the runtime
+                    // reports the error.
+                    let tmpRawScene = tmpCodeLines.join('\n');
+                    let tmpEncoded;
+                    try {
+                      tmpEncoded = encodeURIComponent(tmpRawScene);
+                    } catch (pErr) {
+                      tmpEncoded = '';
+                    }
+                    tmpHTML.push('<div class="pict-excalidraw-fence" data-scene="' + tmpEncoded + '">' + '<div class="pict-excalidraw-fence-loading">Rendering Excalidraw diagram…</div>' + '</div>');
                   } else {
                     let tmpCodeText = tmpCodeLines.join('\n');
                     let tmpHighlightedCode = this.highlightCode(tmpCodeText, tmpCodeLang);
@@ -4746,7 +4771,7 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
         DefaultRenderable: "Pict-Content-Display",
         DefaultDestinationAddress: "#Pict-Content-Container",
         AutoRender: false,
-        CSS: /*css*/"\n\t\t.pict-content {\n\t\t\tpadding: 2em 3em;\n\t\t\tmax-width: 900px;\n\t\t\tmargin: 0 auto;\n\t\t}\n\t\t.pict-content-loading {\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\tmin-height: 200px;\n\t\t\tcolor: var(--theme-color-text-muted, #8A7F72);\n\t\t\tfont-size: 1em;\n\t\t}\n\t\t.pict-content h1 {\n\t\t\tfont-size: 2em;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t\tborder-bottom: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding-bottom: 0.3em;\n\t\t\tmargin-top: 0;\n\t\t}\n\t\t.pict-content h2 {\n\t\t\tfont-size: 1.5em;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t\tborder-bottom: 1px solid var(--theme-color-border-light, #EAE3D8);\n\t\t\tpadding-bottom: 0.25em;\n\t\t\tmargin-top: 1.5em;\n\t\t}\n\t\t.pict-content h3 {\n\t\t\tfont-size: 1.25em;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t\tmargin-top: 1.25em;\n\t\t}\n\t\t.pict-content h4, .pict-content h5, .pict-content h6 {\n\t\t\tcolor: var(--theme-color-text-secondary, #5E5549);\n\t\t\tmargin-top: 1em;\n\t\t}\n\t\t.pict-content p {\n\t\t\tline-height: 1.7;\n\t\t\tcolor: var(--theme-color-text-primary, #423D37);\n\t\t\tmargin: 0.75em 0;\n\t\t}\n\t\t.pict-content a {\n\t\t\tcolor: var(--theme-color-brand-primary, #2E7D74);\n\t\t\ttext-decoration: none;\n\t\t}\n\t\t.pict-content a:hover {\n\t\t\ttext-decoration: underline;\n\t\t}\n\t\t/* \u2500\u2500\u2500 Code blocks \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\t\t   Background, text color, line-number gutter, and every\n\t\t   syntax token route through pict-provider-theme tokens \u2014\n\t\t   the same set pict-section-code (the live editor) uses.\n\t\t   This way the rendered-preview code blocks look identical\n\t\t   to the live editor and re-skin together when the theme\n\t\t   switches.  Previous version used the text-primary token\n\t\t   as the code background (a TEXT token used as BACKGROUND),\n\t\t   which broke in dark mode and any palette where text and\n\t\t   background-tertiary diverge.\n\t\t*/\n\t\t.pict-content pre {\n\t\t\tbackground:    var(--theme-color-background-tertiary, #F0ECE4);\n\t\t\tcolor:         var(--theme-color-text-primary,        #3D3229);\n\t\t\tborder:        1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding: 1.25em;\n\t\t\tborder-radius: 6px;\n\t\t\toverflow-x: auto;\n\t\t\tline-height: 1.5;\n\t\t\tfont-size: 0.9em;\n\t\t\tfont-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace);\n\t\t}\n\t\t/* Inline code (single backtick) \u2014 slightly differentiated\n\t\t   from block code so it doesn't disappear into prose. */\n\t\t.pict-content code {\n\t\t\tbackground:    var(--theme-color-background-secondary, #FAF8F4);\n\t\t\tcolor:         var(--theme-color-text-primary,         #3D3229);\n\t\t\tpadding: 0.15em 0.4em;\n\t\t\tborder-radius: 3px;\n\t\t\tfont-size: 0.9em;\n\t\t\tfont-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', monospace);\n\t\t}\n\t\t.pict-content-code-wrap {\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: row;\n\t\t\tfont-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace);\n\t\t\tfont-size: 14px;\n\t\t\tline-height: 1.5;\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tborder-radius: 6px;\n\t\t\toverflow: hidden;\n\t\t\tmargin: 1em 0;\n\t\t\tbackground: var(--theme-color-background-tertiary, #F0ECE4);\n\t\t}\n\t\t.pict-content-code-wrap .pict-content-code-line-numbers {\n\t\t\twidth: 40px;\n\t\t\tmin-width: 40px;\n\t\t\tpadding: 1.25em 0;\n\t\t\ttext-align: right;\n\t\t\tbackground:    var(--theme-color-background-secondary, #FAF8F4);\n\t\t\tborder-right:  1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tcolor:         var(--theme-color-text-muted,           #8A7F72);\n\t\t\tfont-family: inherit;\n\t\t\tfont-size: inherit;\n\t\t\tline-height: inherit;\n\t\t\tuser-select: none;\n\t\t\tpointer-events: none;\n\t\t\tbox-sizing: border-box;\n\t\t}\n\t\t.pict-content-code-wrap .pict-content-code-line-numbers span {\n\t\t\tdisplay: block;\n\t\t\tpadding: 0 8px 0 0;\n\t\t}\n\t\t.pict-content-code-wrap pre {\n\t\t\tmargin: 0;\n\t\t\tbackground: var(--theme-color-background-tertiary, #F0ECE4);\n\t\t\tcolor:      var(--theme-color-text-primary,        #3D3229);\n\t\t\tborder: none;\n\t\t\tpadding: 1.25em 1.25em 1.25em 8px;\n\t\t\tborder-radius: 0 6px 6px 0;\n\t\t\toverflow-x: auto;\n\t\t\tline-height: 1.5;\n\t\t\tfont-size: inherit;\n\t\t\tflex: 1;\n\t\t\tmin-width: 0;\n\t\t}\n\t\t.pict-content-code-wrap pre code {\n\t\t\tbackground: none;\n\t\t\tpadding: 0;\n\t\t\tcolor: inherit;\n\t\t\tfont-size: inherit;\n\t\t\tfont-family: inherit;\n\t\t}\n\t\t/* Syntax token colors \u2014 every class binds to a --theme-color-syntax-*\n\t\t   variable, the same tokens pict-section-code (the live editor) uses.\n\t\t   Each var() carries an Atom One Light hex as fallback for hosts\n\t\t   without a theme provider; themes that DO ship syntax tokens\n\t\t   (pict-default, retold-content-system, etc.) drive everything\n\t\t   coherently. */\n\t\t.pict-content-code-wrap .keyword       { color: var(--theme-color-syntax-keyword,     #A626A4); }\n\t\t.pict-content-code-wrap .string        { color: var(--theme-color-syntax-string,      #50A14F); }\n\t\t.pict-content-code-wrap .number        { color: var(--theme-color-syntax-number,      #986801); }\n\t\t.pict-content-code-wrap .comment       { color: var(--theme-color-syntax-comment,     #A0A1A7); font-style: italic; }\n\t\t.pict-content-code-wrap .operator      { color: var(--theme-color-syntax-operator,    #0184BC); }\n\t\t.pict-content-code-wrap .punctuation   { color: var(--theme-color-syntax-punctuation, #383A42); }\n\t\t.pict-content-code-wrap .function-name { color: var(--theme-color-syntax-function,    #4078F2); }\n\t\t.pict-content-code-wrap .property      { color: var(--theme-color-syntax-property,    #E45649); }\n\t\t.pict-content-code-wrap .tag           { color: var(--theme-color-syntax-tag,         #E45649); }\n\t\t.pict-content-code-wrap .attr-name     { color: var(--theme-color-syntax-attrname,    #986801); }\n\t\t.pict-content-code-wrap .attr-value    { color: var(--theme-color-syntax-attrvalue,   #50A14F); }\n\t\t.pict-content-code-wrap .builtin       { color: var(--theme-color-syntax-builtin,     #986801); }\n\t\t.pict-content-code-wrap .type          { color: var(--theme-color-syntax-type,        #C18401); }\n\t\t.pict-content-code-wrap .variable      { color: var(--theme-color-syntax-variable,    #383A42); }\n\t\t.pict-content pre code {\n\t\t\tbackground: none;\n\t\t\tpadding: 0;\n\t\t\tcolor: inherit;\n\t\t\tfont-size: inherit;\n\t\t}\n\t\t.pict-content blockquote {\n\t\t\tborder-left: 4px solid var(--theme-color-brand-primary, #2E7D74);\n\t\t\tmargin: 1em 0;\n\t\t\tpadding: 0.5em 1em;\n\t\t\tbackground: var(--theme-color-background-secondary, #F7F5F0);\n\t\t\tcolor: var(--theme-color-text-secondary, #5E5549);\n\t\t}\n\t\t.pict-content blockquote p {\n\t\t\tmargin: 0.25em 0;\n\t\t}\n\t\t.pict-content ul, .pict-content ol {\n\t\t\tpadding-left: 2em;\n\t\t\tline-height: 1.8;\n\t\t}\n\t\t.pict-content li {\n\t\t\tmargin: 0.25em 0;\n\t\t\tcolor: var(--theme-color-text-primary, #423D37);\n\t\t}\n\t\t.pict-content hr {\n\t\t\tborder: none;\n\t\t\tborder-top: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tmargin: 2em 0;\n\t\t}\n\t\t.pict-content table {\n\t\t\twidth: 100%;\n\t\t\tborder-collapse: collapse;\n\t\t\tmargin: 1em 0;\n\t\t}\n\t\t.pict-content table th {\n\t\t\tbackground: var(--theme-color-background-secondary, #F5F0E8);\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding: 0.6em 0.8em;\n\t\t\ttext-align: left;\n\t\t\tfont-weight: 600;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t}\n\t\t.pict-content table td {\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding: 0.5em 0.8em;\n\t\t\tcolor: var(--theme-color-text-primary, #423D37);\n\t\t}\n\t\t.pict-content table tr:nth-child(even) {\n\t\t\tbackground: var(--theme-color-background-secondary, #F7F5F0);\n\t\t}\n\t\t.pict-content img {\n\t\t\tmax-width: 100%;\n\t\t\theight: auto;\n\t\t}\n\t\t.pict-content pre.mermaid {\n\t\t\tbackground: var(--theme-color-background-panel, #fff);\n\t\t\tcolor: var(--theme-color-text-primary, #2A241E);\n\t\t\ttext-align: center;\n\t\t\tpadding: 1em;\n\t\t}\n\t\t.pict-content pre.mermaid text,\n\t\t.pict-content pre.mermaid .nodeLabel,\n\t\t.pict-content pre.mermaid .edgeLabel,\n\t\t.pict-content pre.mermaid .label,\n\t\t.pict-content pre.mermaid .cluster-label,\n\t\t.pict-content pre.mermaid span,\n\t\t.pict-content pre.mermaid foreignObject p,\n\t\t.pict-content pre.mermaid foreignObject div,\n\t\t.pict-content pre.mermaid foreignObject span {\n\t\t\tcolor: var(--theme-color-text-primary, #2A241E) !important;\n\t\t\tfill: var(--theme-color-text-primary, #2A241E) !important;\n\t\t}\n\t\t.pict-content pre.mermaid .edgePath .path {\n\t\t\tstroke: var(--theme-color-text-secondary, #5E5549) !important;\n\t\t}\n\t\t.pict-content pre.mermaid .arrowheadPath {\n\t\t\tfill: var(--theme-color-text-secondary, #5E5549) !important;\n\t\t}\n\t\t.pict-content .pict-content-katex-display {\n\t\t\ttext-align: center;\n\t\t\tmargin: 1em 0;\n\t\t\tpadding: 0.5em;\n\t\t\toverflow-x: auto;\n\t\t}\n\t\t.pict-content .pict-content-katex-inline {\n\t\t\tdisplay: inline;\n\t\t}\n\n\t\t/* Fullscreen viewer for images and mermaid diagrams (click-to-zoom) */\n\t\t.pict-content [data-fullscreen-source] {\n\t\t\tcursor: zoom-in;\n\t\t\toutline: 1px solid transparent;\n\t\t\toutline-offset: 3px;\n\t\t\tborder-radius: 4px;\n\t\t\ttransition: outline-color 0.15s ease;\n\t\t}\n\t\t.pict-content [data-fullscreen-source]:hover {\n\t\t\toutline-color: var(--theme-color-brand-primary, #2E7D74);\n\t\t}\n\t\t/* Code block container with hover-revealed action buttons */\n\t\t.pict-content-code-container {\n\t\t\tposition: relative;\n\t\t\tdisplay: flex;\n\t\t\talign-items: flex-start;\n\t\t\tgap: 8px;\n\t\t\tmargin: 1em 0;\n\t\t}\n\t\t.pict-content-code-container > .pict-content-code-wrap {\n\t\t\tmargin: 0;\n\t\t\tflex: 1 1 auto;\n\t\t\tmin-width: 0;\n\t\t}\n\t\t.pict-content-code-actions {\n\t\t\tposition: sticky;\n\t\t\ttop: 64px;\n\t\t\talign-self: flex-start;\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: column;\n\t\t\tgap: 6px;\n\t\t\tflex: 0 0 auto;\n\t\t\tpadding-top: 6px;\n\t\t\topacity: 0;\n\t\t\ttransform: translateX(-4px);\n\t\t\ttransition: opacity 0.15s ease, transform 0.15s ease;\n\t\t\tpointer-events: none;\n\t\t}\n\t\t.pict-content-code-container:hover .pict-content-code-actions,\n\t\t.pict-content-code-container:focus-within .pict-content-code-actions {\n\t\t\topacity: 1;\n\t\t\ttransform: translateX(0);\n\t\t\tpointer-events: auto;\n\t\t}\n\t\t.pict-content-code-action-btn {\n\t\t\tdisplay: inline-flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\twidth: 28px;\n\t\t\theight: 28px;\n\t\t\tpadding: 0;\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tcolor: var(--theme-color-text-muted, #5E5549);\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tborder-radius: 6px;\n\t\t\tcursor: pointer;\n\t\t\tbox-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);\n\t\t\ttransition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;\n\t\t}\n\t\t.pict-content-code-action-btn svg {\n\t\t\tdisplay: block;\n\t\t\twidth: 14px;\n\t\t\theight: 14px;\n\t\t\tstroke: currentColor;\n\t\t\tfill: none;\n\t\t\tstroke-width: 1.6;\n\t\t\tstroke-linecap: round;\n\t\t\tstroke-linejoin: round;\n\t\t}\n\t\t.pict-content-code-action-btn:hover {\n\t\t\tbackground: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t\tborder-color: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tbox-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);\n\t\t}\n\t\t.pict-content-code-action-btn:focus-visible {\n\t\t\toutline: 2px solid var(--theme-color-brand-primary, #2E7D74);\n\t\t\toutline-offset: 2px;\n\t\t}\n\t\t.pict-content-code-action-btn.is-copied {\n\t\t\tbackground: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t\tborder-color: var(--theme-color-brand-primary, #2E7D74);\n\t\t}\n\t\t.pict-content-code-action-btn.is-copy-failed {\n\t\t\tbackground: var(--theme-color-status-error, #B23A3A);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t\tborder-color: var(--theme-color-status-error, #B23A3A);\n\t\t}\n\t\t.pict-fullscreen-overlay {\n\t\t\tposition: fixed;\n\t\t\tinset: 0;\n\t\t\tz-index: 9999;\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: column;\n\t\t\tbackground: rgba(0, 0, 0, 0.62);\n\t\t\tbackdrop-filter: blur(6px);\n\t\t\t-webkit-backdrop-filter: blur(6px);\n\t\t\tcolor: var(--theme-color-text-primary, #2A241E);\n\t\t}\n\t\t.pict-fullscreen-overlay[hidden] {\n\t\t\tdisplay: none;\n\t\t}\n\t\t.pict-fullscreen-titlebar {\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: space-between;\n\t\t\tgap: 1em;\n\t\t\theight: 48px;\n\t\t\tpadding: 0 1em;\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tcolor: var(--theme-color-text-primary, #1A1612);\n\t\t\tborder-bottom: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tbox-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);\n\t\t\tflex: 0 0 auto;\n\t\t}\n\t\t.pict-fullscreen-title {\n\t\t\tfont-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;\n\t\t\tfont-size: 0.95em;\n\t\t\tfont-weight: 600;\n\t\t\tletter-spacing: 0.01em;\n\t\t\twhite-space: nowrap;\n\t\t\toverflow: hidden;\n\t\t\ttext-overflow: ellipsis;\n\t\t\tcolor: var(--theme-color-text-primary, #1A1612);\n\t\t}\n\t\t.pict-fullscreen-controls {\n\t\t\tdisplay: inline-flex;\n\t\t\talign-items: center;\n\t\t\tgap: 4px;\n\t\t}\n\t\t.pict-fullscreen-btn {\n\t\t\tdisplay: inline-flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\twidth: 32px;\n\t\t\theight: 32px;\n\t\t\tpadding: 0;\n\t\t\tbackground: transparent;\n\t\t\tborder: 1px solid transparent;\n\t\t\tborder-radius: 6px;\n\t\t\tcolor: var(--theme-color-text-muted, #5E5549);\n\t\t\tcursor: pointer;\n\t\t\ttransition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;\n\t\t}\n\t\t.pict-fullscreen-btn svg {\n\t\t\tdisplay: block;\n\t\t\twidth: 16px;\n\t\t\theight: 16px;\n\t\t\tstroke: currentColor;\n\t\t\tfill: none;\n\t\t\tstroke-width: 1.75;\n\t\t\tstroke-linecap: round;\n\t\t\tstroke-linejoin: round;\n\t\t}\n\t\t.pict-fullscreen-btn:hover {\n\t\t\tbackground: var(--theme-color-border-light, #EAE3D8);\n\t\t\tcolor: var(--theme-color-text-primary, #1A1612);\n\t\t}\n\t\t.pict-fullscreen-btn:focus-visible {\n\t\t\toutline: 2px solid var(--theme-color-brand-primary, #2E7D74);\n\t\t\toutline-offset: 2px;\n\t\t}\n\t\t.pict-fullscreen-close:hover {\n\t\t\tbackground: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t}\n\t\t.pict-fullscreen-stage {\n\t\t\tflex: 1 1 auto;\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\toverflow: hidden;\n\t\t\tpadding: 1.5em;\n\t\t\tcursor: zoom-in;\n\t\t\ttouch-action: none;\n\t\t}\n\t\t.pict-fullscreen-stage.is-zoomed {\n\t\t\tcursor: grab;\n\t\t}\n\t\t.pict-fullscreen-stage.is-panning {\n\t\t\tcursor: grabbing;\n\t\t}\n\t\t.pict-fullscreen-content {\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\tmax-width: 100%;\n\t\t\tmax-height: 100%;\n\t\t\ttransform-origin: center center;\n\t\t\ttransition: transform 0.05s linear;\n\t\t\twill-change: transform;\n\t\t}\n\t\t.pict-fullscreen-content > * {\n\t\t\tbox-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);\n\t\t}\n\t\t.pict-fullscreen-content .pict-fullscreen-img {\n\t\t\tmax-width: 90vw;\n\t\t\tmax-height: calc(100vh - 96px);\n\t\t\twidth: auto;\n\t\t\theight: auto;\n\t\t\tobject-fit: contain;\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tpadding: 12px;\n\t\t\tborder-radius: 6px;\n\t\t}\n\t\t.pict-fullscreen-content .pict-fullscreen-mermaid-svg {\n\t\t\twidth: min(90vw, 1400px);\n\t\t\theight: auto;\n\t\t\tmax-height: calc(100vh - 96px);\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tpadding: 16px;\n\t\t\tborder-radius: 6px;\n\t\t}\n\t\t.pict-fullscreen-content .pict-fullscreen-codewrap {\n\t\t\tmax-width: 90vw;\n\t\t\tmax-height: calc(100vh - 96px);\n\t\t\tmargin: 0;\n\t\t\toverflow: auto;\n\t\t\tbox-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);\n\t\t}\n\t",
+        CSS: /*css*/"\n\t\t.pict-content {\n\t\t\tpadding: 2em 3em;\n\t\t\tmax-width: 900px;\n\t\t\tmargin: 0 auto;\n\t\t}\n\t\t.pict-content-loading {\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\tmin-height: 200px;\n\t\t\tcolor: var(--theme-color-text-muted, #8A7F72);\n\t\t\tfont-size: 1em;\n\t\t}\n\t\t.pict-content h1 {\n\t\t\tfont-size: 2em;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t\tborder-bottom: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding-bottom: 0.3em;\n\t\t\tmargin-top: 0;\n\t\t}\n\t\t.pict-content h2 {\n\t\t\tfont-size: 1.5em;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t\tborder-bottom: 1px solid var(--theme-color-border-light, #EAE3D8);\n\t\t\tpadding-bottom: 0.25em;\n\t\t\tmargin-top: 1.5em;\n\t\t}\n\t\t.pict-content h3 {\n\t\t\tfont-size: 1.25em;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t\tmargin-top: 1.25em;\n\t\t}\n\t\t.pict-content h4, .pict-content h5, .pict-content h6 {\n\t\t\tcolor: var(--theme-color-text-secondary, #5E5549);\n\t\t\tmargin-top: 1em;\n\t\t}\n\t\t.pict-content p {\n\t\t\tline-height: 1.7;\n\t\t\tcolor: var(--theme-color-text-primary, #423D37);\n\t\t\tmargin: 0.75em 0;\n\t\t}\n\t\t.pict-content a {\n\t\t\tcolor: var(--theme-color-brand-primary, #2E7D74);\n\t\t\ttext-decoration: none;\n\t\t}\n\t\t.pict-content a:hover {\n\t\t\ttext-decoration: underline;\n\t\t}\n\t\t/* \u2500\u2500\u2500 Code blocks \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\t\t   Background, text color, line-number gutter, and every\n\t\t   syntax token route through pict-provider-theme tokens \u2014\n\t\t   the same set pict-section-code (the live editor) uses.\n\t\t   This way the rendered-preview code blocks look identical\n\t\t   to the live editor and re-skin together when the theme\n\t\t   switches.  Previous version used the text-primary token\n\t\t   as the code background (a TEXT token used as BACKGROUND),\n\t\t   which broke in dark mode and any palette where text and\n\t\t   background-tertiary diverge.\n\t\t*/\n\t\t.pict-content pre {\n\t\t\tbackground:    var(--theme-color-background-tertiary, #F0ECE4);\n\t\t\tcolor:         var(--theme-color-text-primary,        #3D3229);\n\t\t\tborder:        1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding: 1.25em;\n\t\t\tborder-radius: 6px;\n\t\t\toverflow-x: auto;\n\t\t\tline-height: 1.5;\n\t\t\tfont-size: 0.9em;\n\t\t\tfont-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace);\n\t\t}\n\t\t/* Inline code (single backtick) \u2014 slightly differentiated\n\t\t   from block code so it doesn't disappear into prose. */\n\t\t.pict-content code {\n\t\t\tbackground:    var(--theme-color-background-secondary, #FAF8F4);\n\t\t\tcolor:         var(--theme-color-text-primary,         #3D3229);\n\t\t\tpadding: 0.15em 0.4em;\n\t\t\tborder-radius: 3px;\n\t\t\tfont-size: 0.9em;\n\t\t\tfont-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', monospace);\n\t\t}\n\t\t.pict-content-code-wrap {\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: row;\n\t\t\tfont-family: var(--theme-typography-family-mono, 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'Courier New', monospace);\n\t\t\tfont-size: 14px;\n\t\t\tline-height: 1.5;\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tborder-radius: 6px;\n\t\t\toverflow: hidden;\n\t\t\tmargin: 1em 0;\n\t\t\tbackground: var(--theme-color-background-tertiary, #F0ECE4);\n\t\t}\n\t\t.pict-content-code-wrap .pict-content-code-line-numbers {\n\t\t\twidth: 40px;\n\t\t\tmin-width: 40px;\n\t\t\tpadding: 1.25em 0;\n\t\t\ttext-align: right;\n\t\t\tbackground:    var(--theme-color-background-secondary, #FAF8F4);\n\t\t\tborder-right:  1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tcolor:         var(--theme-color-text-muted,           #8A7F72);\n\t\t\tfont-family: inherit;\n\t\t\tfont-size: inherit;\n\t\t\tline-height: inherit;\n\t\t\tuser-select: none;\n\t\t\tpointer-events: none;\n\t\t\tbox-sizing: border-box;\n\t\t}\n\t\t.pict-content-code-wrap .pict-content-code-line-numbers span {\n\t\t\tdisplay: block;\n\t\t\tpadding: 0 8px 0 0;\n\t\t}\n\t\t.pict-content-code-wrap pre {\n\t\t\tmargin: 0;\n\t\t\tbackground: var(--theme-color-background-tertiary, #F0ECE4);\n\t\t\tcolor:      var(--theme-color-text-primary,        #3D3229);\n\t\t\tborder: none;\n\t\t\tpadding: 1.25em 1.25em 1.25em 8px;\n\t\t\tborder-radius: 0 6px 6px 0;\n\t\t\toverflow-x: auto;\n\t\t\tline-height: 1.5;\n\t\t\tfont-size: inherit;\n\t\t\tflex: 1;\n\t\t\tmin-width: 0;\n\t\t}\n\t\t.pict-content-code-wrap pre code {\n\t\t\tbackground: none;\n\t\t\tpadding: 0;\n\t\t\tcolor: inherit;\n\t\t\tfont-size: inherit;\n\t\t\tfont-family: inherit;\n\t\t}\n\t\t/* Syntax token colors \u2014 every class binds to a --theme-color-syntax-*\n\t\t   variable, the same tokens pict-section-code (the live editor) uses.\n\t\t   Each var() carries an Atom One Light hex as fallback for hosts\n\t\t   without a theme provider; themes that DO ship syntax tokens\n\t\t   (pict-default, retold-content-system, etc.) drive everything\n\t\t   coherently. */\n\t\t.pict-content-code-wrap .keyword       { color: var(--theme-color-syntax-keyword,     #A626A4); }\n\t\t.pict-content-code-wrap .string        { color: var(--theme-color-syntax-string,      #50A14F); }\n\t\t.pict-content-code-wrap .number        { color: var(--theme-color-syntax-number,      #986801); }\n\t\t.pict-content-code-wrap .comment       { color: var(--theme-color-syntax-comment,     #A0A1A7); font-style: italic; }\n\t\t.pict-content-code-wrap .operator      { color: var(--theme-color-syntax-operator,    #0184BC); }\n\t\t.pict-content-code-wrap .punctuation   { color: var(--theme-color-syntax-punctuation, #383A42); }\n\t\t.pict-content-code-wrap .function-name { color: var(--theme-color-syntax-function,    #4078F2); }\n\t\t.pict-content-code-wrap .property      { color: var(--theme-color-syntax-property,    #E45649); }\n\t\t.pict-content-code-wrap .tag           { color: var(--theme-color-syntax-tag,         #E45649); }\n\t\t.pict-content-code-wrap .attr-name     { color: var(--theme-color-syntax-attrname,    #986801); }\n\t\t.pict-content-code-wrap .attr-value    { color: var(--theme-color-syntax-attrvalue,   #50A14F); }\n\t\t.pict-content-code-wrap .builtin       { color: var(--theme-color-syntax-builtin,     #986801); }\n\t\t.pict-content-code-wrap .type          { color: var(--theme-color-syntax-type,        #C18401); }\n\t\t.pict-content-code-wrap .variable      { color: var(--theme-color-syntax-variable,    #383A42); }\n\t\t.pict-content pre code {\n\t\t\tbackground: none;\n\t\t\tpadding: 0;\n\t\t\tcolor: inherit;\n\t\t\tfont-size: inherit;\n\t\t}\n\t\t.pict-content blockquote {\n\t\t\tborder-left: 4px solid var(--theme-color-brand-primary, #2E7D74);\n\t\t\tmargin: 1em 0;\n\t\t\tpadding: 0.5em 1em;\n\t\t\tbackground: var(--theme-color-background-secondary, #F7F5F0);\n\t\t\tcolor: var(--theme-color-text-secondary, #5E5549);\n\t\t}\n\t\t.pict-content blockquote p {\n\t\t\tmargin: 0.25em 0;\n\t\t}\n\t\t.pict-content ul, .pict-content ol {\n\t\t\tpadding-left: 2em;\n\t\t\tline-height: 1.8;\n\t\t}\n\t\t.pict-content li {\n\t\t\tmargin: 0.25em 0;\n\t\t\tcolor: var(--theme-color-text-primary, #423D37);\n\t\t}\n\t\t.pict-content hr {\n\t\t\tborder: none;\n\t\t\tborder-top: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tmargin: 2em 0;\n\t\t}\n\t\t.pict-content table {\n\t\t\twidth: 100%;\n\t\t\tborder-collapse: collapse;\n\t\t\tmargin: 1em 0;\n\t\t}\n\t\t.pict-content table th {\n\t\t\tbackground: var(--theme-color-background-secondary, #F5F0E8);\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding: 0.6em 0.8em;\n\t\t\ttext-align: left;\n\t\t\tfont-weight: 600;\n\t\t\tcolor: var(--theme-color-text-primary, #3D3229);\n\t\t}\n\t\t.pict-content table td {\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tpadding: 0.5em 0.8em;\n\t\t\tcolor: var(--theme-color-text-primary, #423D37);\n\t\t}\n\t\t.pict-content table tr:nth-child(even) {\n\t\t\tbackground: var(--theme-color-background-secondary, #F7F5F0);\n\t\t}\n\t\t.pict-content img {\n\t\t\tmax-width: 100%;\n\t\t\theight: auto;\n\t\t}\n\t\t.pict-content pre.mermaid {\n\t\t\tbackground: var(--theme-color-background-panel, #fff);\n\t\t\tcolor: var(--theme-color-text-primary, #2A241E);\n\t\t\ttext-align: center;\n\t\t\tpadding: 1em;\n\t\t}\n\t\t.pict-content pre.mermaid text,\n\t\t.pict-content pre.mermaid .nodeLabel,\n\t\t.pict-content pre.mermaid .edgeLabel,\n\t\t.pict-content pre.mermaid .label,\n\t\t.pict-content pre.mermaid .cluster-label,\n\t\t.pict-content pre.mermaid span,\n\t\t.pict-content pre.mermaid foreignObject p,\n\t\t.pict-content pre.mermaid foreignObject div,\n\t\t.pict-content pre.mermaid foreignObject span {\n\t\t\tcolor: var(--theme-color-text-primary, #2A241E) !important;\n\t\t\tfill: var(--theme-color-text-primary, #2A241E) !important;\n\t\t}\n\t\t.pict-content pre.mermaid .edgePath .path {\n\t\t\tstroke: var(--theme-color-text-secondary, #5E5549) !important;\n\t\t}\n\t\t.pict-content pre.mermaid .arrowheadPath {\n\t\t\tfill: var(--theme-color-text-secondary, #5E5549) !important;\n\t\t}\n\t\t/* Excalidraw fence placeholders + rendered SVGs */\n\t\t.pict-content .pict-excalidraw-fence {\n\t\t\tdisplay: block;\n\t\t\tbackground: var(--theme-color-background-panel, #fff);\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tborder-radius: 4px;\n\t\t\tpadding: 1em;\n\t\t\tmargin: 1em 0;\n\t\t\ttext-align: center;\n\t\t}\n\t\t.pict-content .pict-excalidraw-fence svg {\n\t\t\tmax-width: 100%;\n\t\t\theight: auto;\n\t\t}\n\t\t.pict-content .pict-excalidraw-fence-loading {\n\t\t\tcolor: var(--theme-color-text-secondary, #5E5549);\n\t\t\tfont-style: italic;\n\t\t\tfont-size: 0.9em;\n\t\t\tpadding: 1em;\n\t\t}\n\t\t.pict-content .pict-excalidraw-fence-error {\n\t\t\tborder-color: var(--theme-color-status-error, #D9534F);\n\t\t\tbackground: var(--theme-color-background-secondary, #FFF5F5);\n\t\t}\n\t\t.pict-content .pict-excalidraw-fence-error-message {\n\t\t\tcolor: var(--theme-color-status-error, #D9534F);\n\t\t\tfont-family: var(--theme-typography-family-mono, monospace);\n\t\t\tfont-size: 0.85em;\n\t\t\ttext-align: left;\n\t\t}\n\t\t.pict-content .pict-content-katex-display {\n\t\t\ttext-align: center;\n\t\t\tmargin: 1em 0;\n\t\t\tpadding: 0.5em;\n\t\t\toverflow-x: auto;\n\t\t}\n\t\t.pict-content .pict-content-katex-inline {\n\t\t\tdisplay: inline;\n\t\t}\n\n\t\t/* Fullscreen viewer for images and mermaid diagrams (click-to-zoom) */\n\t\t.pict-content [data-fullscreen-source] {\n\t\t\tcursor: zoom-in;\n\t\t\toutline: 1px solid transparent;\n\t\t\toutline-offset: 3px;\n\t\t\tborder-radius: 4px;\n\t\t\ttransition: outline-color 0.15s ease;\n\t\t}\n\t\t.pict-content [data-fullscreen-source]:hover {\n\t\t\toutline-color: var(--theme-color-brand-primary, #2E7D74);\n\t\t}\n\t\t/* Code block container with hover-revealed action buttons */\n\t\t.pict-content-code-container {\n\t\t\tposition: relative;\n\t\t\tdisplay: flex;\n\t\t\talign-items: flex-start;\n\t\t\tgap: 8px;\n\t\t\tmargin: 1em 0;\n\t\t}\n\t\t.pict-content-code-container > .pict-content-code-wrap {\n\t\t\tmargin: 0;\n\t\t\tflex: 1 1 auto;\n\t\t\tmin-width: 0;\n\t\t}\n\t\t.pict-content-code-actions {\n\t\t\tposition: sticky;\n\t\t\ttop: 64px;\n\t\t\talign-self: flex-start;\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: column;\n\t\t\tgap: 6px;\n\t\t\tflex: 0 0 auto;\n\t\t\tpadding-top: 6px;\n\t\t\topacity: 0;\n\t\t\ttransform: translateX(-4px);\n\t\t\ttransition: opacity 0.15s ease, transform 0.15s ease;\n\t\t\tpointer-events: none;\n\t\t}\n\t\t.pict-content-code-container:hover .pict-content-code-actions,\n\t\t.pict-content-code-container:focus-within .pict-content-code-actions {\n\t\t\topacity: 1;\n\t\t\ttransform: translateX(0);\n\t\t\tpointer-events: auto;\n\t\t}\n\t\t.pict-content-code-action-btn {\n\t\t\tdisplay: inline-flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\twidth: 28px;\n\t\t\theight: 28px;\n\t\t\tpadding: 0;\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tcolor: var(--theme-color-text-muted, #5E5549);\n\t\t\tborder: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tborder-radius: 6px;\n\t\t\tcursor: pointer;\n\t\t\tbox-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);\n\t\t\ttransition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;\n\t\t}\n\t\t.pict-content-code-action-btn svg {\n\t\t\tdisplay: block;\n\t\t\twidth: 14px;\n\t\t\theight: 14px;\n\t\t\tstroke: currentColor;\n\t\t\tfill: none;\n\t\t\tstroke-width: 1.6;\n\t\t\tstroke-linecap: round;\n\t\t\tstroke-linejoin: round;\n\t\t}\n\t\t.pict-content-code-action-btn:hover {\n\t\t\tbackground: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t\tborder-color: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tbox-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);\n\t\t}\n\t\t.pict-content-code-action-btn:focus-visible {\n\t\t\toutline: 2px solid var(--theme-color-brand-primary, #2E7D74);\n\t\t\toutline-offset: 2px;\n\t\t}\n\t\t.pict-content-code-action-btn.is-copied {\n\t\t\tbackground: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t\tborder-color: var(--theme-color-brand-primary, #2E7D74);\n\t\t}\n\t\t.pict-content-code-action-btn.is-copy-failed {\n\t\t\tbackground: var(--theme-color-status-error, #B23A3A);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t\tborder-color: var(--theme-color-status-error, #B23A3A);\n\t\t}\n\t\t.pict-fullscreen-overlay {\n\t\t\tposition: fixed;\n\t\t\tinset: 0;\n\t\t\tz-index: 9999;\n\t\t\tdisplay: flex;\n\t\t\tflex-direction: column;\n\t\t\tbackground: rgba(0, 0, 0, 0.62);\n\t\t\tbackdrop-filter: blur(6px);\n\t\t\t-webkit-backdrop-filter: blur(6px);\n\t\t\tcolor: var(--theme-color-text-primary, #2A241E);\n\t\t}\n\t\t.pict-fullscreen-overlay[hidden] {\n\t\t\tdisplay: none;\n\t\t}\n\t\t.pict-fullscreen-titlebar {\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: space-between;\n\t\t\tgap: 1em;\n\t\t\theight: 48px;\n\t\t\tpadding: 0 1em;\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tcolor: var(--theme-color-text-primary, #1A1612);\n\t\t\tborder-bottom: 1px solid var(--theme-color-border-default, #DDD6CA);\n\t\t\tbox-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);\n\t\t\tflex: 0 0 auto;\n\t\t}\n\t\t.pict-fullscreen-title {\n\t\t\tfont-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;\n\t\t\tfont-size: 0.95em;\n\t\t\tfont-weight: 600;\n\t\t\tletter-spacing: 0.01em;\n\t\t\twhite-space: nowrap;\n\t\t\toverflow: hidden;\n\t\t\ttext-overflow: ellipsis;\n\t\t\tcolor: var(--theme-color-text-primary, #1A1612);\n\t\t}\n\t\t.pict-fullscreen-controls {\n\t\t\tdisplay: inline-flex;\n\t\t\talign-items: center;\n\t\t\tgap: 4px;\n\t\t}\n\t\t.pict-fullscreen-btn {\n\t\t\tdisplay: inline-flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\twidth: 32px;\n\t\t\theight: 32px;\n\t\t\tpadding: 0;\n\t\t\tbackground: transparent;\n\t\t\tborder: 1px solid transparent;\n\t\t\tborder-radius: 6px;\n\t\t\tcolor: var(--theme-color-text-muted, #5E5549);\n\t\t\tcursor: pointer;\n\t\t\ttransition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;\n\t\t}\n\t\t.pict-fullscreen-btn svg {\n\t\t\tdisplay: block;\n\t\t\twidth: 16px;\n\t\t\theight: 16px;\n\t\t\tstroke: currentColor;\n\t\t\tfill: none;\n\t\t\tstroke-width: 1.75;\n\t\t\tstroke-linecap: round;\n\t\t\tstroke-linejoin: round;\n\t\t}\n\t\t.pict-fullscreen-btn:hover {\n\t\t\tbackground: var(--theme-color-border-light, #EAE3D8);\n\t\t\tcolor: var(--theme-color-text-primary, #1A1612);\n\t\t}\n\t\t.pict-fullscreen-btn:focus-visible {\n\t\t\toutline: 2px solid var(--theme-color-brand-primary, #2E7D74);\n\t\t\toutline-offset: 2px;\n\t\t}\n\t\t.pict-fullscreen-close:hover {\n\t\t\tbackground: var(--theme-color-brand-primary, #2E7D74);\n\t\t\tcolor: var(--theme-color-text-on-brand, #FFFFFF);\n\t\t}\n\t\t.pict-fullscreen-stage {\n\t\t\tflex: 1 1 auto;\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\toverflow: hidden;\n\t\t\tpadding: 1.5em;\n\t\t\tcursor: zoom-in;\n\t\t\ttouch-action: none;\n\t\t}\n\t\t.pict-fullscreen-stage.is-zoomed {\n\t\t\tcursor: grab;\n\t\t}\n\t\t.pict-fullscreen-stage.is-panning {\n\t\t\tcursor: grabbing;\n\t\t}\n\t\t.pict-fullscreen-content {\n\t\t\tdisplay: flex;\n\t\t\talign-items: center;\n\t\t\tjustify-content: center;\n\t\t\tmax-width: 100%;\n\t\t\tmax-height: 100%;\n\t\t\ttransform-origin: center center;\n\t\t\ttransition: transform 0.05s linear;\n\t\t\twill-change: transform;\n\t\t}\n\t\t.pict-fullscreen-content > * {\n\t\t\tbox-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);\n\t\t}\n\t\t.pict-fullscreen-content .pict-fullscreen-img {\n\t\t\tmax-width: 90vw;\n\t\t\tmax-height: calc(100vh - 96px);\n\t\t\twidth: auto;\n\t\t\theight: auto;\n\t\t\tobject-fit: contain;\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tpadding: 12px;\n\t\t\tborder-radius: 6px;\n\t\t}\n\t\t.pict-fullscreen-content .pict-fullscreen-mermaid-svg {\n\t\t\twidth: min(90vw, 1400px);\n\t\t\theight: auto;\n\t\t\tmax-height: calc(100vh - 96px);\n\t\t\tbackground: var(--theme-color-background-panel, #FFFFFF);\n\t\t\tpadding: 16px;\n\t\t\tborder-radius: 6px;\n\t\t}\n\t\t.pict-fullscreen-content .pict-fullscreen-codewrap {\n\t\t\tmax-width: 90vw;\n\t\t\tmax-height: calc(100vh - 96px);\n\t\t\tmargin: 0;\n\t\t\toverflow: auto;\n\t\t\tbox-shadow: 0 12px 48px rgba(0, 0, 0, 0.45);\n\t\t}\n\t",
         Templates: [{
           Hash: "Pict-Content-Template",
           Template: /*html*/"\n<div class=\"pict-content\" id=\"Pict-Content-Body\">\n\t<div class=\"pict-content-loading\">Loading content...</div>\n</div>\n"
@@ -4798,8 +4823,94 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
           // Once mermaid finishes, retag so the rendered SVGs are also clickable.
           this.renderMermaidDiagrams(tmpContainerID);
 
+          // Post-render: render ```excalidraw fenced scenes if the
+          // pict-section-excalidraw wrapper bundle is loaded.  Each fence
+          // becomes a static SVG (with the scene embedded for re-edit by
+          // retold-content-system).
+          this.renderExcalidrawDiagrams(tmpContainerID);
+
           // Post-render: render KaTeX equations if katex is available
           this.renderKaTeXEquations(tmpContainerID);
+        }
+
+        /**
+         * Render any `.pict-excalidraw-fence` placeholders inside the container
+         * as static SVGs using the pict-section-excalidraw wrapper bundle's
+         * exportToSvg helper.  Each fence's scene JSON travels through a
+         * URI-component-encoded data-scene attribute (placed there by the
+         * markdown parser in Pict-Provider-Content).
+         *
+         * Gracefully degrades when the wrapper bundle isn't on the page:
+         * leaves the loading placeholder visible with a one-time console hint.
+         * Idempotent — placeholders carry `data-rendered="true"` after the
+         * first pass so re-renders don't double-emit.
+         *
+         * @param {string} [pContainerID]
+         */
+        renderExcalidrawDiagrams(pContainerID) {
+          if (typeof document === 'undefined') return;
+          let tmpContainerID = pContainerID || 'Pict-Content-Body';
+          let tmpContentBody = document.getElementById(tmpContainerID);
+          if (!tmpContentBody) return;
+          let tmpFences = tmpContentBody.querySelectorAll('.pict-excalidraw-fence:not([data-rendered])');
+          if (tmpFences.length < 1) return;
+          let tmpVendor = typeof window !== 'undefined' ? window.PictSectionExcalidrawVendor : null;
+          if (!tmpVendor || typeof tmpVendor.exportToSvg !== 'function') {
+            // Bundle not loaded — leave the placeholder visible.  The host
+            // can load the wrapper bundle and call renderExcalidrawDiagrams
+            // again, or include the script tag in its HTML shell.
+            if (this.log && this.log.warn && !this._excalidrawBundleWarnLogged) {
+              this.log.warn('pict-excalidraw fence(s) found but pict-section-excalidraw wrapper bundle is not loaded — leaving as placeholders.');
+              this._excalidrawBundleWarnLogged = true;
+            }
+            return;
+          }
+          for (let i = 0; i < tmpFences.length; i++) {
+            let tmpFence = tmpFences[i];
+            let tmpEncoded = tmpFence.getAttribute('data-scene') || '';
+            let tmpJson = '';
+            try {
+              tmpJson = decodeURIComponent(tmpEncoded);
+            } catch (pErr) {
+              tmpJson = '';
+            }
+            let tmpScene;
+            try {
+              tmpScene = JSON.parse(tmpJson);
+            } catch (pErr) {
+              this._renderExcalidrawFenceError(tmpFence, 'Invalid scene JSON: ' + pErr.message);
+              continue;
+            }
+            let tmpExportArgs = {
+              elements: tmpScene.elements || [],
+              appState: Object.assign({
+                exportEmbedScene: true
+              }, tmpScene.appState || {}),
+              files: tmpScene.files || {}
+            };
+            tmpVendor.exportToSvg(tmpExportArgs).then(pSvgEl => {
+              if (!pSvgEl) return;
+              // Style the SVG to fit the fence's content width while preserving aspect.
+              pSvgEl.removeAttribute('width');
+              pSvgEl.removeAttribute('height');
+              pSvgEl.setAttribute('style', 'max-width: 100%; height: auto;');
+              tmpFence.innerHTML = '';
+              tmpFence.appendChild(pSvgEl);
+              tmpFence.setAttribute('data-rendered', 'true');
+            }).catch(pErr => {
+              this._renderExcalidrawFenceError(tmpFence, 'Excalidraw render failed: ' + (pErr && pErr.message ? pErr.message : pErr));
+            });
+          }
+        }
+        _renderExcalidrawFenceError(pFence, pMessage) {
+          pFence.setAttribute('data-rendered', 'true');
+          pFence.classList.add('pict-excalidraw-fence-error');
+          pFence.innerHTML = '<div class="pict-excalidraw-fence-error-message"></div>';
+          // Use textContent on the inner div so any user-supplied error
+          // substrings (e.g. parser error positions) can't introduce HTML.
+          let tmpMsg = pFence.querySelector('.pict-excalidraw-fence-error-message');
+          if (tmpMsg) tmpMsg.textContent = pMessage;
+          if (this.log && this.log.warn) this.log.warn('pict-excalidraw fence: ' + pMessage);
         }
 
         /**
@@ -5527,6 +5638,97 @@ function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = 
       module.exports.default_configuration = _ViewConfiguration;
     }, {
       "pict-view": 14
+    }],
+    18: [function (require, module, exports) {
+      // Pict-Section-Content — Demo view
+      //
+      // A thin renderable wrapper around the canonical Pict-View-Content view.
+      // The base view is "lazy" — it shows a Loading placeholder until its host
+      // application explicitly calls `displayContent(parsedHTML)`.  That works
+      // fine when an application has its own page logic, but it's awkward for
+      // the docuserve playground (which doesn't know anything about
+      // markdown / parseMarkdown).
+      //
+      // This demo view bridges that gap:
+      //   1. Ensures the PictContentProvider is registered with `pict`.
+      //   2. Reads markdown text from an AppData address (configurable via
+      //      `MarkdownDataAddress`, e.g. "AppData.ContentDemo.Markdown").
+      //   3. On every render, parses the markdown via the provider and calls
+      //      the parent view's `displayContent` to push HTML into the DOM.
+      //
+      // Host applications that need anything more elaborate (navigation,
+      // multiple documents, link resolvers) should keep using the canonical
+      // Pict-View-Content view directly.  This demo view exists for the
+      // playground and other "just render this markdown blob" surfaces.
+
+      const libPictViewContent = require('./Pict-View-Content.js');
+      const libPictContentProvider = require('../providers/Pict-Provider-Content.js');
+      const _ViewConfiguration = {
+        ViewIdentifier: "Pict-Content-Demo",
+        DefaultRenderable: "Pict-Content-Display",
+        DefaultDestinationAddress: "#Pict-Content-Container",
+        // Where to read the markdown source from. Resolved against the
+        // pict instance with simple dot-walking — "AppData.X.Y.Z".
+        MarkdownDataAddress: "AppData.ContentDemo.Markdown",
+        // AutoRender on, so the playground's wrapper just instantiates the
+        // view and the markdown shows up on next tick.
+        AutoRender: true,
+        // Inherit CSS / Templates / Renderables from the base view so we
+        // render into the same #Pict-Content-Container with the same shell.
+        CSS: libPictViewContent.default_configuration.CSS,
+        Templates: libPictViewContent.default_configuration.Templates,
+        Renderables: libPictViewContent.default_configuration.Renderables
+      };
+      class PictContentDemoView extends libPictViewContent {
+        constructor(pFable, pOptions, pServiceHash) {
+          super(pFable, pOptions, pServiceHash);
+
+          // Ensure the content provider is registered. Use a stable hash
+          // so repeat instantiation is a no-op.
+          let tmpProviderHash = 'Pict-Content';
+          if (!this.pict.providers[tmpProviderHash]) {
+            this.pict.addProvider(tmpProviderHash, libPictContentProvider.default_configuration, libPictContentProvider);
+          }
+        }
+
+        /**
+         * Walk a dotted address ("AppData.X.Y.Z") against the pict instance
+         * and return the value, or null if any segment is missing.
+         */
+        _readMarkdownFromAddress() {
+          let tmpAddress = this.options.MarkdownDataAddress;
+          if (!tmpAddress || typeof tmpAddress !== 'string') {
+            return null;
+          }
+          let tmpParts = tmpAddress.split('.');
+          let tmpCurrent = this.pict;
+          for (let i = 0; i < tmpParts.length; i++) {
+            if (tmpCurrent === null || tmpCurrent === undefined) {
+              return null;
+            }
+            tmpCurrent = tmpCurrent[tmpParts[i]];
+          }
+          return typeof tmpCurrent === 'string' ? tmpCurrent : null;
+        }
+        onAfterRender(pRenderable, pAddress, pRecord, pContent) {
+          // Pull markdown from AppData and push parsed HTML through the
+          // parent view's pipeline (which also wires Mermaid / KaTeX /
+          // fullscreen viewers).
+          let tmpMarkdown = this._readMarkdownFromAddress();
+          let tmpProvider = this.pict.providers['Pict-Content'];
+          if (tmpProvider && typeof tmpMarkdown === 'string') {
+            let tmpHTML = tmpProvider.parseMarkdown(tmpMarkdown);
+            this.displayContent(tmpHTML);
+          }
+          this.pict.CSSMap.injectCSS();
+          return super.onAfterRender(pRenderable, pAddress, pRecord, pContent);
+        }
+      }
+      module.exports = PictContentDemoView;
+      module.exports.default_configuration = _ViewConfiguration;
+    }, {
+      "../providers/Pict-Provider-Content.js": 16,
+      "./Pict-View-Content.js": 17
     }]
   }, {}, [1])(1);
 });
