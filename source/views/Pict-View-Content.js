@@ -797,6 +797,18 @@ class PictContentView extends libPictView
 			{
 				tmpResult.then(() =>
 				{
+					// Strip mermaid 11's inline !important fill/stroke flags
+					// so the view's theme-aware .theme-dark CSS rules can win
+					// against the per-node colors mermaid bakes inline.  The
+					// adapter strips on every re-render; the initial render
+					// runs through mermaid.run() directly so we have to call
+					// the strip here too.  Without this the dark-mode rect
+					// fill override silently loses to inline `!important`.
+					let tmpProvider = this.pict && this.pict.providers && this.pict.providers.Theme;
+					if (tmpProvider && tmpProvider.diagram && typeof tmpProvider.diagram.stripMermaidStyleImportance === 'function')
+					{
+						tmpProvider.diagram.stripMermaidStyleImportance(tmpMermaidElements);
+					}
 					this.enableFullscreenViewers(tmpContainerID, { onlyMermaid: true });
 				}).catch((pError) =>
 				{
@@ -806,6 +818,11 @@ class PictContentView extends libPictView
 			else
 			{
 				// Synchronous fallback (older mermaid)
+				let tmpProvider = this.pict && this.pict.providers && this.pict.providers.Theme;
+				if (tmpProvider && tmpProvider.diagram && typeof tmpProvider.diagram.stripMermaidStyleImportance === 'function')
+				{
+					tmpProvider.diagram.stripMermaidStyleImportance(tmpMermaidElements);
+				}
 				this.enableFullscreenViewers(tmpContainerID, { onlyMermaid: true });
 			}
 		}
