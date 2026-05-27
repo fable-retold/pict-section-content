@@ -1,6 +1,6 @@
 {
 	"name": "pict-section-content",
-	"version": "1.0.11",
+	"version": "1.0.12",
 	"description": "Pict content rendering section - markdown parsing, Mermaid diagrams, and KaTeX equations",
 	"main": "source/Pict-Section-Content.js",
 	"scripts": {

@@ -259,6 +259,25 @@ const _ViewConfiguration =
 			fill:   var(--theme-color-background-tertiary, #2A241E) !important;
 			stroke: var(--theme-color-border-default,      #5E5549) !important;
 		}
+		/* Mirror of the above for theme mode 'system' — when the user
+		   hasn't explicitly picked light or dark, the theme provider
+		   leaves <html> without .theme-light/.theme-dark and the CSS
+		   variables follow prefers-color-scheme. The .theme-dark-prefixed
+		   block above doesn't match in that case, so light pastels would
+		   win again on dark OSes. Mirror the rule under the media query,
+		   gated by :not(.theme-light) so an explicit light override on a
+		   dark OS still wins. */
+		@media (prefers-color-scheme: dark) {
+			html:not(.theme-light) .pict-content pre.mermaid .node rect,
+			html:not(.theme-light) .pict-content pre.mermaid .node polygon,
+			html:not(.theme-light) .pict-content pre.mermaid .node circle,
+			html:not(.theme-light) .pict-content pre.mermaid .node ellipse,
+			html:not(.theme-light) .pict-content pre.mermaid .node path,
+			html:not(.theme-light) .pict-content pre.mermaid .cluster rect {
+				fill:   var(--theme-color-background-tertiary, #2A241E) !important;
+				stroke: var(--theme-color-border-default,      #5E5549) !important;
+			}
+		}
 		/* Excalidraw fence placeholders + rendered SVGs */
 		.pict-content .pict-excalidraw-fence {
 			display: block;
