@@ -22,7 +22,7 @@
 	"homepage": "https://github.com/fable-retold/pict-section-content#readme",
 	"dependencies": {
 		"pict-provider": "^1.0.13",
-		"pict-provider-theme": "^1.1.0",
+		"pict-provider-theme": "^1.1.2",
 		"pict-section-code": "^1.0.11",
 		"pict-view": "^1.0.68"
 	},
