@@ -17,6 +17,6 @@ Parse markdown to HTML with support for code blocks, Mermaid diagrams, KaTeX mat
 <!-- docuserve:examples:start -->
 | Example | Complexity | Launch |
 |---------|------------|--------|
-| [Basic Content](examples/basic%5Fcontent/README.md) | Basic | [&#9654; Launch](examples/basic%5Fcontent/index.html) |
-| [Content Showcase](examples/content%5Fshowcase/README.md) | Intermediate | [&#9654; Launch](examples/content%5Fshowcase/index.html) |
+| [Basic Content](examples/basic%5Fcontent/README.md) | Basic | [Launch](examples/basic%5Fcontent/index.html) |
+| [Content Showcase](examples/content%5Fshowcase/README.md) | Intermediate | [Launch](examples/content%5Fshowcase/index.html) |
 <!-- docuserve:examples:end -->

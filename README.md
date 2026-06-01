@@ -1,6 +1,6 @@
 # Pict Section Content
 
-> **[&#9654; Read the Pict-Section-Content Documentation](https://fable-retold.github.io/pict-section-content/)** &mdash; interactive docs with the full API reference.
+> **[Read the Pict-Section-Content Documentation](https://fable-retold.github.io/pict-section-content/)** - interactive docs with the full API reference.
 
 A reusable content rendering section for the Pict ecosystem. Parses markdown to HTML with support for fenced code blocks, Mermaid diagrams, KaTeX math equations, GFM tables, and more. Provides a styled content view with post-render hooks for Mermaid and KaTeX integration.
 
