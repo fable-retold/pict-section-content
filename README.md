@@ -4,7 +4,7 @@
 
 A reusable content rendering section for the Pict ecosystem. Parses markdown to HTML with support for fenced code blocks, Mermaid diagrams, KaTeX math equations, GFM tables, and more. Provides a styled content view with post-render hooks for Mermaid and KaTeX integration.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[MIT License](LICENSE)
 
 ---
 
