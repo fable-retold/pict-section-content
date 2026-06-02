@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant User
+    participant App
+    participant Provider
+    participant View
+    User->>App: Load Page
+    App->>Provider: parseMarkdown(md)
+    Provider-->>App: HTML string
+    App->>View: displayContent(html)
+    View->>View: renderMermaidDiagrams()
+    View->>View: renderKaTeXEquations()
+    View-->>User: Rendered Content

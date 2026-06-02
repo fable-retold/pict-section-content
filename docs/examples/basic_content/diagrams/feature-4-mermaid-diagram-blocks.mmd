@@ -1,0 +1,12 @@
+graph TD
+    A[Markdown Input] --> B[Parse Markdown]
+    B --> C{Contains Math?}
+    C -->|Yes| D[Render KaTeX]
+    C -->|No| E[Skip KaTeX]
+    D --> F[Display Content]
+    E --> F
+    B --> G{Contains Diagrams?}
+    G -->|Yes| H[Render Mermaid]
+    G -->|No| I[Skip Mermaid]
+    H --> F
+    I --> F

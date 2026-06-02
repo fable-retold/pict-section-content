@@ -164,37 +164,13 @@ Mermaid's diagram types in one page.
 
 A top-down flowchart:
 
-```mermaid
-graph TD
-    A[Markdown Input] --> B[Parse Markdown]
-    B --> C{Contains Math?}
-    C -->|Yes| D[Render KaTeX]
-    C -->|No| E[Skip KaTeX]
-    D --> F[Display Content]
-    E --> F
-    B --> G{Contains Diagrams?}
-    G -->|Yes| H[Render Mermaid]
-    G -->|No| I[Skip Mermaid]
-    H --> F
-    I --> F
-```
+<!-- bespoke diagram: edit diagrams/feature-4-mermaid-diagram-blocks.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-content/docs/examples/basic_content -->
+![Feature 4 - Mermaid diagram blocks](diagrams/feature-4-mermaid-diagram-blocks.svg)
 
 A sequence diagram showing the actual control flow this example performs:
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant App
-    participant Provider
-    participant View
-    User->>App: Load Page
-    App->>Provider: parseMarkdown(md)
-    Provider-->>App: HTML string
-    App->>View: displayContent(html)
-    View->>View: renderMermaidDiagrams()
-    View->>View: renderKaTeXEquations()
-    View-->>User: Rendered Content
-```
+<!-- bespoke diagram: edit diagrams/feature-4-mermaid-diagram-blocks-2.mmd or .hints.json, then: npx pict-renderer-graph build modules/pict/pict-section-content/docs/examples/basic_content -->
+![Feature 4 - Mermaid diagram blocks](diagrams/feature-4-mermaid-diagram-blocks-2.svg)
 
 Both diagrams are themed via the view's `_initializeMermaidTheme()` - Mermaid
 is initialized with its `base` theme but `themeVariables` are pulled from the
