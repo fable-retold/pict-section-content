@@ -497,11 +497,15 @@ class PictContentProvider extends libPictProvider
 
 		// Bold
 		tmpResult = tmpResult.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-		tmpResult = tmpResult.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+		// Underscore strong only at word boundaries (CommonMark intraword rule) so
+		// identifiers / URLs like a__b or foo__bar aren't treated as emphasis.
+		tmpResult = tmpResult.replace(/(^|[^A-Za-z0-9_])__([^_]+?)__(?![A-Za-z0-9_])/g, '$1<strong>$2</strong>');
 
 		// Italic
 		tmpResult = tmpResult.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-		tmpResult = tmpResult.replace(/_([^_]+)_/g, '<em>$1</em>');
+		// Underscore italic only at word boundaries — a single underscore inside a
+		// word or a URL (e.g. hello_world in a link href) must NOT become <em>.
+		tmpResult = tmpResult.replace(/(^|[^A-Za-z0-9_])_([^_]+?)_(?![A-Za-z0-9_])/g, '$1<em>$2</em>');
 
 		// Restore inline code spans from placeholders
 		tmpResult = tmpResult.replace(/\x00CODEINLINE(\d+)\x00/g, (pMatch, pIndex) =>
