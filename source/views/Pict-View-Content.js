@@ -532,6 +532,17 @@ const _ViewConfiguration =
 			padding: 16px;
 			border-radius: 6px;
 		}
+		/* Bespoke inline-SVG diagrams (pict-renderer-graph / excalidraw).  Backdrop
+		   uses the diagram's own --diagram-paper so the zoomed copy keeps the same
+		   theme as the inline one (the host defines --diagram-* on the overlay). */
+		.pict-fullscreen-content .pict-fullscreen-diagram-svg {
+			width: min(90vw, 1400px);
+			height: auto;
+			max-height: calc(100vh - 96px);
+			background: var(--diagram-paper, var(--theme-color-background-panel, #FFFFFF));
+			padding: 16px;
+			border-radius: 6px;
+		}
 		/* Same dark-mode fill/stroke override as for inline diagrams, but
 		   scoped to the fullscreen-overlay clone — which lives under
 		   <body>, NOT inside .pict-content, so the pre.mermaid-scoped
@@ -1455,6 +1466,26 @@ class PictContentView extends libPictView
 						tmpClone.classList.add('pict-fullscreen-mermaid-svg');
 						// Drop mermaid's inline max-width / width / height style so the
 						// fullscreen CSS rule actually controls the size.
+						tmpClone.removeAttribute('style');
+						tmpClone.removeAttribute('width');
+						tmpClone.removeAttribute('height');
+					}
+					else
+					{
+						tmpClone = pSourceEl.cloneNode(true);
+					}
+				}
+				else if (tmpKind === 'diagram')
+				{
+					// Inline SVG diagram (bespoke pict-renderer-graph / excalidraw):
+					// clone the <svg> and drop its intrinsic sizing so the fullscreen
+					// stage controls the dimensions -- same approach as mermaid, but
+					// the source element may BE the svg or a wrapper around it.
+					let tmpSvg = (String(pSourceEl.tagName).toLowerCase() === 'svg') ? pSourceEl : pSourceEl.querySelector('svg');
+					if (tmpSvg)
+					{
+						tmpClone = tmpSvg.cloneNode(true);
+						tmpClone.classList.add('pict-fullscreen-diagram-svg');
 						tmpClone.removeAttribute('style');
 						tmpClone.removeAttribute('width');
 						tmpClone.removeAttribute('height');
