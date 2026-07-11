@@ -67,6 +67,39 @@ suite
 
 		suite
 		(
+			'Code block styling',
+			function()
+			{
+				test
+				(
+					'the provider registers the content CSS so parseMarkdown output is styled without the view',
+					(fDone) =>
+					{
+						let tmpProvider = createProvider();
+						let tmpCSS = tmpProvider.pict.CSSMap.generateCSS();
+						Expect(tmpCSS).to.contain('.pict-content-code-wrap', 'The code-block CSS must ship at the provider layer.');
+						Expect(tmpCSS.replace(/\s+/g, ' ')).to.contain('.pict-content-code-wrap { display: flex', 'The gutter must be a flex row so line numbers sit left of the code.');
+						fDone();
+					}
+				);
+				test
+				(
+					'a fenced code block puts the line-number gutter before the <pre> in source order',
+					(fDone) =>
+					{
+						let tmpProvider = createProvider();
+						let tmpResult = tmpProvider.parseMarkdown('```js\nlet a = 1;\nlet b = 2;\n```');
+						Expect(tmpResult).to.contain('pict-content-code-line-numbers');
+						Expect(tmpResult).to.contain('<pre>');
+						Expect(tmpResult.indexOf('pict-content-code-line-numbers')).to.be.lessThan(tmpResult.indexOf('<pre>'), 'Gutter comes before the code (flex-row then places it to the left).');
+						fDone();
+					}
+				);
+			}
+		);
+
+		suite
+		(
 			'Markdown Parsing',
 			function()
 			{

@@ -1,6 +1,8 @@
 const libPictProvider = require('pict-provider');
 const libCreateHighlighter = require('pict-section-code').createHighlighter;
 
+const libContentCSS = require('../Pict-Content-CSS.js');
+
 /**
  * Content Provider for Pict Section Content
  *
@@ -20,6 +22,18 @@ class PictContentProvider extends libPictProvider
 	constructor(pFable, pOptions, pServiceHash)
 	{
 		super(pFable, pOptions, pServiceHash);
+
+		// Register the content CSS at the PROVIDER layer. parseMarkdown emits the
+		// .pict-content-code-wrap markup (a line-number gutter + a <pre>), and that CSS makes the
+		// wrap a flex row so the numbers sit to the LEFT of the code. Consumers like the
+		// inline-documentation reader use this provider WITHOUT instantiating the view, so the
+		// view's CSS never shipped and the numbers stacked ABOVE the code -- the recurring bug.
+		// Registering here fixes it for every consumer; the view uses the same hash, so it still
+		// injects only once. (pict CLAUDE.md: providers must addCSS() themselves.)
+		if (this.pict && this.pict.CSSMap && typeof this.pict.CSSMap.addCSS === 'function')
+		{
+			this.pict.CSSMap.addCSS('Pict-Section-Content-CSS', libContentCSS, 500);
+		}
 	}
 
 	/**
