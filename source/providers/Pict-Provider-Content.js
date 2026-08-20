@@ -779,6 +779,8 @@ class PictContentProvider extends libPictProvider
 
 		let tmpTitle = tmpOptions.title || '';
 		let tmpPoster = (tmpOptions.poster && this.isSafeMediaURL(tmpOptions.poster)) ? tmpOptions.poster : '';
+		// The caption belongs under a PLAYER, which has nowhere else to say what it is. A card already
+		// carries the title inside it, so captioning that one prints the same sentence twice.
 		let tmpCaption = tmpTitle ? ('<figcaption>' + this.escapeHTML(tmpTitle) + '</figcaption>') : '';
 
 		if (this.isDirectVideoURL(tmpURL))
@@ -808,7 +810,7 @@ class PictContentProvider extends libPictProvider
 			'<span class="pict-content-video-label">' +
 			'<span class="pict-content-video-title">' + this.escapeHTML(tmpTitle || tmpWatch) + '</span>' +
 			'<span class="pict-content-video-source">' + this.escapeHTML(tmpLabel) + '</span>' +
-			'</span></a>' + tmpCaption + '</figure>';
+			'</span></a></figure>';
 	}
 
 	/**

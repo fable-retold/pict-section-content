@@ -995,6 +995,18 @@ suite('Pict Section Content - Video Embeds', () =>
 			});
 		});
 
+		test('says its title once, not twice', () =>
+		{
+			// A caption belongs under a player, which has nowhere else to name itself. The card already
+			// carries the title inside it, so a figcaption there prints the same sentence twice.
+			let tmpProvider = createProvider();
+			let tmpCard = tmpProvider.videoEmbedHTML('https://youtu.be/dQw4w9WgXcQ\ntitle: A walkthrough');
+			Expect(tmpCard.split('A walkthrough').length - 1, 'once on the card').to.equal(1);
+			Expect(tmpCard).to.not.contain('<figcaption>');
+			let tmpPlayer = tmpProvider.videoEmbedHTML('/1.0/Media/42/Blob\ntitle: A walkthrough');
+			Expect(tmpPlayer, 'a player keeps its caption').to.contain('<figcaption>A walkthrough</figcaption>');
+		});
+
 		test('shows a poster only when the AUTHOR supplied one', () =>
 		{
 			let tmpProvider = createProvider();
