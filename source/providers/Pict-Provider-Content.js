@@ -180,6 +180,13 @@ class PictContentProvider extends libPictProvider
 							// Mermaid diagrams: output raw content for client-side rendering
 							tmpHTML.push('<pre class="mermaid">' + tmpCodeLines.join('\n') + '</pre>');
 						}
+						else if (tmpCodeLang === 'video')
+						{
+							// Video: one fence, two outcomes, decided by where the video lives.
+							// Self-hosted (a relative URL, or a file with a video extension) plays inline;
+							// a third-party watch page becomes a click-to-load card. See videoEmbedHTML.
+							tmpHTML.push(this.videoEmbedHTML(tmpCodeLines.join('\n')));
+						}
 						else if (tmpCodeLang === 'excalidraw')
 						{
 							// Excalidraw scenes: emit a placeholder div with the
@@ -485,6 +492,14 @@ class PictContentProvider extends libPictProvider
 					tmpSrc = tmpResolved;
 				}
 			}
+			// A video file written with the image form. Authors reach for `![clip](demo.mp4)` because it is
+			// the syntax their fingers know, and an <img> pointed at an mp4 is a broken image icon -- so it
+			// renders a player instead. Only a real video EXTENSION qualifies; see hasVideoExtension.
+			if (this.hasVideoExtension(tmpSrc) && this.isSafeMediaURL(tmpSrc))
+			{
+				return '<video class="pict-content-video-inline" controls preload="metadata" src="' + this.escapeHTML(tmpSrc) + '">' +
+					'<a href="' + this.escapeHTML(tmpSrc) + '">' + this.escapeHTML(pAlt || 'Download the video') + '</a></video>';
+			}
 			return '<img src="' + tmpSrc + '" alt="' + pAlt + '">';
 		});
 
@@ -620,6 +635,180 @@ class PictContentProvider extends libPictProvider
 		}
 
 		return tmpParts.join('');
+	}
+
+	/**
+	 * The file extensions that mean "these bytes ARE the video", as opposed to a page about one.
+	 */
+	static get VIDEO_EXTENSIONS()
+	{
+		return ['mp4', 'webm', 'ogv', 'ogg', 'mov', 'm4v'];
+	}
+
+	/**
+	 * Recognize a third-party video URL and return { Provider, Embed, Watch }, or null when the URL is not
+	 * one this knows how to embed.
+	 *
+	 * Only YouTube and Vimeo are recognized on purpose: an embed is a third party running code in the
+	 * reader's page, so the set of parties allowed to do that is a list, not a guess.
+	 *
+	 * @param {string} pURL
+	 * @returns {Object|null}
+	 */
+	videoProviderFor(pURL)
+	{
+		let tmpURL = String(pURL || '').trim();
+		let tmpYouTube = tmpURL.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+		if (tmpYouTube)
+		{
+			// youtube-nocookie.com is the same player without the tracking cookies it would otherwise set
+			// the moment the frame loads.
+			return {
+				Provider: 'YouTube',
+				Embed: 'https://www.youtube-nocookie.com/embed/' + tmpYouTube[1] + '?autoplay=1&rel=0',
+				Watch: 'https://www.youtube.com/watch?v=' + tmpYouTube[1]
+			};
+		}
+		let tmpVimeo = tmpURL.match(/vimeo\.com\/(?:video\/)?(\d{6,})/);
+		if (tmpVimeo)
+		{
+			return {
+				Provider: 'Vimeo',
+				Embed: 'https://player.vimeo.com/video/' + tmpVimeo[1] + '?autoplay=1',
+				Watch: 'https://vimeo.com/' + tmpVimeo[1]
+			};
+		}
+		return null;
+	}
+
+	/**
+	 * Is this URL safe to put in an href or a src? Only http(s) and same-document relative URLs are, which
+	 * is what keeps a javascript: or data: URL in a document from becoming script when a reader clicks it.
+	 *
+	 * @param {string} pURL
+	 * @returns {boolean}
+	 */
+	isSafeMediaURL(pURL)
+	{
+		let tmpURL = String(pURL || '').trim();
+		if (!tmpURL) { return false; }
+		if (/^https?:\/\//i.test(tmpURL)) { return true; }
+		// A relative or root-relative path: same origin by construction, so it carries the document's own
+		// trust. Anything with a scheme that is not http(s) is refused.
+		return !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(tmpURL);
+	}
+
+	/**
+	 * Does this URL end in a video file extension? Strictly the extension, nothing inferred.
+	 *
+	 * The inline image form uses THIS rather than isDirectVideoURL: in a ```video fence the author has
+	 * already said the thing is a video, so a relative URL can be taken at its word, but `![logo](/img/x)`
+	 * is an image and treating every extensionless relative source as video would turn the whole media
+	 * library into broken players.
+	 *
+	 * @param {string} pURL
+	 * @returns {boolean}
+	 */
+	hasVideoExtension(pURL)
+	{
+		let tmpPath = String(pURL || '').trim().split('?')[0].split('#')[0];
+		return PictContentProvider.VIDEO_EXTENSIONS.indexOf((tmpPath.split('.').pop() || '').toLowerCase()) >= 0;
+	}
+
+	/**
+	 * Does this URL point at video BYTES rather than a page about a video?
+	 *
+	 * A known video extension says yes. So does any relative URL: those are served by the application
+	 * itself, which is how an uploaded recording is addressed (a blob route often carries no extension at
+	 * all), and the application does not serve watch pages to its own markdown.
+	 *
+	 * @param {string} pURL
+	 * @returns {boolean}
+	 */
+	isDirectVideoURL(pURL)
+	{
+		let tmpURL = String(pURL || '').trim();
+		if (!tmpURL) { return false; }
+		if (this.hasVideoExtension(tmpURL)) { return true; }
+		return !/^https?:\/\//i.test(tmpURL);
+	}
+
+	/**
+	 * The HTML for a ```video fence.
+	 *
+	 * Body shape: the URL on the first non-empty line, then optional `key: value` lines (title, poster).
+	 *
+	 *     ```video
+	 *     https://www.youtube.com/watch?v=abc123
+	 *     title: How the deploy pipeline works
+	 *     poster: /1.0/Media/42/Blob
+	 *     ```
+	 *
+	 * Two outcomes, decided by where the video lives:
+	 *
+	 * - Self-hosted (relative URL, or a file with a video extension) renders a plain <video controls
+	 *   preload="metadata">. The bytes come from the same place the page did, so there is nothing to
+	 *   consent to, and preload="metadata" paints the real first frame as its own thumbnail.
+	 * - A third-party watch page renders a CLICK-TO-LOAD card. Nothing is fetched from that party until the
+	 *   reader asks for it -- not the player, and not the poster image either, since fetching a thumbnail
+	 *   from the provider would leak the reader to them exactly as the player does. A poster is shown only
+	 *   when the author supplied one. Without JavaScript the card is still a working link to the video,
+	 *   which is what a server-rendered or printed copy of the document falls back to.
+	 *
+	 * @param {string} pBody - The fence contents
+	 * @returns {string} The HTML
+	 */
+	videoEmbedHTML(pBody)
+	{
+		let tmpLines = String(pBody || '').split('\n').map((pLine) => { return pLine.trim(); }).filter((pLine) => { return pLine.length > 0; });
+		if (!tmpLines.length)
+		{
+			return '<figure class="pict-content-video pict-content-video-empty"><figcaption>No video URL was given.</figcaption></figure>';
+		}
+		let tmpURL = tmpLines[0];
+		let tmpOptions = {};
+		for (let i = 1; i < tmpLines.length; i++)
+		{
+			let tmpMatch = tmpLines[i].match(/^([A-Za-z][A-Za-z0-9_-]*)\s*:\s*(.*)$/);
+			if (tmpMatch) { tmpOptions[tmpMatch[1].toLowerCase()] = tmpMatch[2].trim(); }
+		}
+		if (!this.isSafeMediaURL(tmpURL))
+		{
+			return '<figure class="pict-content-video pict-content-video-empty"><figcaption>That video link was not a http(s) or relative URL.</figcaption></figure>';
+		}
+
+		let tmpTitle = tmpOptions.title || '';
+		let tmpPoster = (tmpOptions.poster && this.isSafeMediaURL(tmpOptions.poster)) ? tmpOptions.poster : '';
+		let tmpCaption = tmpTitle ? ('<figcaption>' + this.escapeHTML(tmpTitle) + '</figcaption>') : '';
+
+		if (this.isDirectVideoURL(tmpURL))
+		{
+			return '<figure class="pict-content-video pict-content-video-file">' +
+				'<video controls preload="metadata" src="' + this.escapeHTML(tmpURL) + '"' +
+				(tmpPoster ? (' poster="' + this.escapeHTML(tmpPoster) + '"') : '') + '>' +
+				'<a href="' + this.escapeHTML(tmpURL) + '">' + this.escapeHTML(tmpTitle || 'Download the video') + '</a>' +
+				'</video>' + tmpCaption + '</figure>';
+		}
+
+		let tmpProvider = this.videoProviderFor(tmpURL);
+		let tmpWatch = tmpProvider ? tmpProvider.Watch : tmpURL;
+		let tmpLabel = tmpProvider
+			? (tmpProvider.Provider + ' - plays from ' + tmpProvider.Provider + ' when you start it')
+			: 'Opens in a new tab';
+		// data-embed is what the view swaps in on click. A card with no data-embed (an unrecognized site)
+		// stays a link, which is the honest outcome: this cannot promise to embed a page it does not know.
+		return '<figure class="pict-content-video pict-content-video-embed"' +
+			(tmpProvider ? (' data-embed="' + this.escapeHTML(tmpProvider.Embed) + '"') : '') +
+			' data-provider="' + this.escapeHTML(tmpProvider ? tmpProvider.Provider : 'link') + '">' +
+			'<a class="pict-content-video-card" href="' + this.escapeHTML(tmpWatch) + '" target="_blank" rel="noopener noreferrer">' +
+			(tmpPoster ? ('<img class="pict-content-video-poster" src="' + this.escapeHTML(tmpPoster) + '" alt="">') : '') +
+			'<span class="pict-content-video-play" aria-hidden="true">' +
+			'<svg viewBox="0 0 68 48" width="54" height="38"><path class="pict-content-video-play-bg" d="M66.5 7.7a8 8 0 0 0-5.6-5.7C55.9.6 34 .6 34 .6s-21.9 0-26.9 1.4a8 8 0 0 0-5.6 5.7A83 83 0 0 0 .1 24a83 83 0 0 0 1.4 16.3 8 8 0 0 0 5.6 5.7c5 1.4 26.9 1.4 26.9 1.4s21.9 0 26.9-1.4a8 8 0 0 0 5.6-5.7A83 83 0 0 0 67.9 24a83 83 0 0 0-1.4-16.3z"/><path d="M27 34V14l18 10z" fill="#fff"/></svg>' +
+			'</span>' +
+			'<span class="pict-content-video-label">' +
+			'<span class="pict-content-video-title">' + this.escapeHTML(tmpTitle || tmpWatch) + '</span>' +
+			'<span class="pict-content-video-source">' + this.escapeHTML(tmpLabel) + '</span>' +
+			'</span></a>' + tmpCaption + '</figure>';
 	}
 
 	/**

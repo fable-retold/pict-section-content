@@ -565,6 +565,72 @@ module.exports = /*css*/`
 				stroke: var(--theme-color-border-default,      #5E5549) !important;
 			}
 		}
+		/* ---- video (the video fence, and video files written with the image form) ---- */
+		.pict-content-video { margin: 18px 0; }
+		.pict-content-video figcaption {
+			font-size: 13px;
+			color: var(--theme-color-text-secondary, #6B6255);
+			margin-top: 6px;
+		}
+		.pict-content-video-file video,
+		video.pict-content-video-inline {
+			display: block;
+			width: 100%;
+			max-width: 100%;
+			border-radius: 8px;
+			background: #000;
+		}
+		/* The click-to-load card. It carries the whole clickable area, so a reader is never hunting for a
+		   small play button, and it looks like a player rather than a link so nobody wonders what it is. */
+		.pict-content-video-card {
+			position: relative;
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			padding: 16px 18px;
+			min-height: 96px;
+			text-decoration: none;
+			border-radius: 8px;
+			overflow: hidden;
+			background: var(--theme-color-background-tertiary, #211C17);
+			border: 1px solid var(--theme-color-border-default, #5E5549);
+			color: var(--theme-color-text-primary, #F0EAE0);
+		}
+		.pict-content-video-card:hover { border-color: var(--theme-color-brand-primary, #C89B3C); }
+		.pict-content-video-poster {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			opacity: 0.45;
+		}
+		.pict-content-video-play { position: relative; flex: 0 0 auto; line-height: 0; }
+		.pict-content-video-play-bg { fill: #212121; opacity: 0.85; }
+		.pict-content-video-card:hover .pict-content-video-play-bg { fill: #cc0000; opacity: 1; }
+		.pict-content-video-label { position: relative; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+		.pict-content-video-title {
+			font-weight: 600;
+			font-size: 15px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.pict-content-video-source { font-size: 12px; color: var(--theme-color-text-secondary, #A69B8B); }
+		.pict-content-video-frame {
+			display: block;
+			width: 100%;
+			aspect-ratio: 16 / 9;
+			border: 0;
+			border-radius: 8px;
+			background: #000;
+		}
+		.pict-content-video-empty figcaption {
+			padding: 12px 14px;
+			border: 1px dashed var(--theme-color-border-default, #5E5549);
+			border-radius: 8px;
+			margin-top: 0;
+		}
 		.pict-fullscreen-content .pict-fullscreen-codewrap {
 			max-width: 90vw;
 			max-height: calc(100vh - 96px);

@@ -113,6 +113,48 @@ tmpProvider.parseInline('[Guide](guide.md)');
 
 ---
 
+### videoEmbedHTML(pBody)
+
+Renders the contents of a `video` fence. The URL is the first non-empty line; any following `key: value`
+lines are options (`title`, `poster`).
+
+What comes back depends on where the video lives:
+
+| The URL | The result |
+|---------|-----------|
+| Relative, or ending `.mp4` `.webm` `.ogv` `.ogg` `.mov` `.m4v` | `<video controls preload="metadata">` |
+| YouTube or Vimeo | A click-to-load card carrying `data-embed`, hydrated by the view |
+| Anything else `http(s)` | A plain link |
+| Not `http(s)` or relative | A message saying so; the URL is never emitted |
+
+Returns a `<figure class="pict-content-video">`. A card requests nothing from the provider -- no player, no
+thumbnail -- until a reader clicks it.
+
+**Parameters**
+
+- `pBody` (string) -- The fence contents
+
+**Returns** string -- The HTML
+
+### videoProviderFor(pURL)
+
+Returns `{ Provider, Embed, Watch }` for a recognized third-party video URL, or `null`. YouTube (`watch`,
+`youtu.be`, `embed`, `shorts`) and Vimeo are recognized; `Embed` uses `youtube-nocookie.com` for YouTube.
+
+Only these are recognized on purpose: an embed lets a third party run code in the reader's page, so the set
+of parties allowed to do that is a list rather than a guess.
+
+### isSafeMediaURL(pURL) / isDirectVideoURL(pURL) / hasVideoExtension(pURL)
+
+The three tests behind the above.
+
+- `isSafeMediaURL` -- `http(s)` or relative only, so a `javascript:` or `data:` URL never reaches an `href`
+  or a `src`.
+- `hasVideoExtension` -- strictly the file extension. The inline image form uses this one.
+- `isDirectVideoURL` -- the extension test, or any relative URL. The fence uses this one: there the author
+  has already said the thing is a video, so an extensionless application URL (a blob route) can be taken at
+  its word. `![alt](src)` deliberately does not, or every extensionless image would render as a player.
+
 ### escapeHTML(pText)
 
 Escape HTML special characters to prevent XSS and ensure safe rendering inside HTML contexts. Used internally for code block content.
@@ -220,6 +262,22 @@ Find all `<pre class="mermaid">` elements in the container and render them using
 
 ---
 
+### hydrateVideoEmbeds(pContainerID)
+
+Makes the click-to-load video cards live. Each `.pict-content-video-embed[data-embed]` gets a click handler
+that replaces the card with an `<iframe>` for the player. Called automatically after render.
+
+Until a reader clicks, nothing has been requested from the provider. A modified click (cmd, ctrl, shift, alt,
+middle button) is left alone, so "open in a new tab" still works. Idempotent: a hydrated figure carries
+`data-hydrated`.
+
+Without it -- no JavaScript, a server-rendered page, a printed document -- the card remains an anchor to the
+video, which is what it degrades to.
+
+**Parameters**
+
+- `pContainerID` (string, optional) -- Container to search; defaults to the whole document
+
 ### renderKaTeXEquations(pContainerID)
 
 Find all `.pict-content-katex-inline` and `.pict-content-katex-display` elements in the container and render them using the KaTeX library. If `katex` is not defined globally, this method returns immediately.
@@ -268,6 +326,19 @@ The view registers CSS styles for the `.pict-content` container and all rendered
 | `.pict-content h4, h5, h6` | Minor headings. |
 | `.pict-content p` | Paragraph. Line height 1.7. |
 | `.pict-content a` | Links. Teal color, underline on hover. |
+
+### Video
+
+| Class | Description |
+|-------|-------------|
+| `.pict-content-video` | The `<figure>` wrapping any video. |
+| `.pict-content-video-file` | A self-hosted recording from a `video` fence. |
+| `.pict-content-video-inline` | A video file written with the image form. |
+| `.pict-content-video-embed` | A third-party video, before a click. Carries `data-embed`. |
+| `.pict-content-video-card` | The clickable card: play mark, title, source line. |
+| `.pict-content-video-poster` | An author-supplied poster behind the card. |
+| `.pict-content-video-frame` | The `<iframe>` that replaces the card once clicked. |
+| `.pict-content-video-empty` | A fence with no URL, or one that was refused. |
 
 ### Code
 

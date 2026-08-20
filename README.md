@@ -12,6 +12,7 @@ A reusable content rendering section for the Pict ecosystem. Parses markdown to 
 
 - **Markdown Parsing** -- Headings, paragraphs, lists, blockquotes, horizontal rules, fenced code blocks (with nested fence support), GFM tables, and inline formatting
 - **Mermaid Diagrams** -- Code blocks tagged `mermaid` render as diagrams when the Mermaid library is present
+- **Video** -- Self-hosted recordings play inline; YouTube and Vimeo render as click-to-load cards that request nothing from the provider until a reader asks
 - **KaTeX Math** -- Inline (`$...$`) and display (`$$...$$`) math equations render when KaTeX is loaded
 - **Link Resolver** -- Pluggable callback for custom link resolution, enabling consumers to map links to application-specific routes
 - **Content View** -- Styled view with CSS for all rendered elements, post-render hooks for Mermaid and KaTeX, and a loading indicator
@@ -83,12 +84,41 @@ let tmpHTML = tmpProvider.parseMarkdown(markdown, tmpResolver);
 | Images | `![alt](src)` |
 | Code blocks | ```` ``` ```` with optional language tag |
 | Mermaid | ```` ```mermaid ```` |
+| Video | ```` ```video ```` (see below), or `![alt](clip.mp4)` |
 | Tables | GFM pipe syntax |
 | Lists | `- item` or `1. item` |
 | Blockquotes | `> text` |
 | Horizontal rules | `---`, `***`, or `___` |
 | Inline math | `$equation$` |
 | Display math | `$$...$$` |
+
+### Video
+
+A `video` fence takes the URL on its first line, then optional `key: value` lines:
+
+````
+```video
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+title: How the deploy pipeline works
+poster: /media/deploy-still.jpg
+```
+````
+
+Where the video lives decides how it renders:
+
+- **Self-hosted** -- a relative URL, or a file ending in `.mp4`, `.webm`, `.ogv`, `.ogg`, `.mov` or `.m4v` --
+  renders a plain `<video controls preload="metadata">`. The browser paints the first frame as the thumbnail,
+  so no poster is needed. A video file written with the image form, `![clip](demo.mp4)`, renders the same way.
+- **YouTube or Vimeo** renders a click-to-load card. Nothing is requested from the provider until a reader
+  clicks: not the player, and not a thumbnail either, since fetching one would report the reader to the
+  provider just as loading the player does. Supply your own `poster` if you want a picture on the card. On
+  click the card is replaced by the player, using `youtube-nocookie.com` where that applies.
+- **Any other URL** renders as a link. Embedding means letting a third party run code in the reader's page,
+  so the sites allowed to do that are a list rather than a guess.
+
+Without JavaScript -- a server-rendered page, a printed document -- the card stays a working link to the
+video. Call `hydrateVideoEmbeds()` (the content view does this automatically after render) to make it
+click-to-load.
 
 ## Module Exports
 
@@ -112,6 +142,10 @@ For full rendering, load these libraries in the browser:
 - **KaTeX** -- Renders math equations (optional, detected at runtime)
 
 Content renders without them; diagrams and equations appear as raw text.
+
+Video needs nothing loaded. A self-hosted recording uses the browser's own player, and a YouTube or Vimeo
+embed is fetched from that provider only after a reader clicks it -- so a document with video in it still
+renders offline, showing the card rather than the player.
 
 ## Part of the Retold Framework
 

@@ -892,3 +892,158 @@ suite
 		);
 	}
 );
+
+/**
+ * Video embeds (Work Item #4, Vision 9 "Rich Authoring").
+ *
+ * One fence, two outcomes, decided by where the video lives. A self-hosted recording plays inline, because
+ * the bytes come from the same place the page did. A third-party watch page becomes a click-to-load card,
+ * because an embed that loads with the page has already told YouTube who is reading this document before
+ * anyone chose anything -- and that is true of the poster image just as much as the player, which is why
+ * there is no auto-fetched thumbnail here.
+ */
+suite('Pict Section Content - Video Embeds', () =>
+{
+	setup(() => { });
+
+	suite('Recognizing a video URL', () =>
+	{
+		test('reads the YouTube forms people actually paste', () =>
+		{
+			let tmpProvider = createProvider();
+			let tmpForms =
+			[
+				'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+				'https://youtu.be/dQw4w9WgXcQ',
+				'https://www.youtube.com/embed/dQw4w9WgXcQ',
+				'https://www.youtube.com/shorts/dQw4w9WgXcQ',
+				'https://www.youtube.com/watch?list=PL123&v=dQw4w9WgXcQ'
+			];
+			tmpForms.forEach((pURL) =>
+			{
+				let tmpMatch = tmpProvider.videoProviderFor(pURL);
+				Expect(tmpMatch, pURL).to.be.an('object');
+				Expect(tmpMatch.Provider).to.equal('YouTube');
+				Expect(tmpMatch.Embed, 'the no-cookie player, not the tracking one').to.contain('youtube-nocookie.com');
+				Expect(tmpMatch.Embed).to.contain('dQw4w9WgXcQ');
+			});
+		});
+
+		test('reads Vimeo, and refuses a site it does not know', () =>
+		{
+			let tmpProvider = createProvider();
+			Expect(tmpProvider.videoProviderFor('https://vimeo.com/123456789').Provider).to.equal('Vimeo');
+			Expect(tmpProvider.videoProviderFor('https://player.vimeo.com/video/123456789').Provider).to.equal('Vimeo');
+			// Not a guess: an embed is a third party running code in the reader's page, so the set of
+			// parties allowed to do that is a list.
+			Expect(tmpProvider.videoProviderFor('https://videos.example.com/watch/9')).to.equal(null);
+		});
+
+		test('only http(s) and relative URLs are allowed anywhere near an href or src', () =>
+		{
+			let tmpProvider = createProvider();
+			Expect(tmpProvider.isSafeMediaURL('https://example.com/a.mp4')).to.equal(true);
+			Expect(tmpProvider.isSafeMediaURL('/1.0/Media/42/Blob')).to.equal(true);
+			Expect(tmpProvider.isSafeMediaURL('clip.mp4')).to.equal(true);
+			Expect(tmpProvider.isSafeMediaURL('javascript:alert(1)')).to.equal(false);
+			Expect(tmpProvider.isSafeMediaURL('data:text/html;base64,PHN2Zz4=')).to.equal(false);
+		});
+	});
+
+	suite('A self-hosted recording', () =>
+	{
+		test('plays inline, with the first frame as its own thumbnail', () =>
+		{
+			let tmpProvider = createProvider();
+			let tmpHTML = tmpProvider.videoEmbedHTML('/1.0/Media/42/Blob\ntitle: The deploy, start to finish');
+			Expect(tmpHTML).to.contain('<video controls preload="metadata"');
+			Expect(tmpHTML).to.contain('src="/1.0/Media/42/Blob"');
+			// preload="metadata" is what paints a real first frame without fetching the whole file.
+			Expect(tmpHTML).to.contain('preload="metadata"');
+			Expect(tmpHTML).to.contain('The deploy, start to finish');
+			Expect(tmpHTML, 'nothing to consent to: it is served from here').to.not.contain('data-embed');
+		});
+
+		test('a video file written with the image form renders a player, and an image still renders an image', () =>
+		{
+			let tmpProvider = createProvider();
+			Expect(tmpProvider.parseInline('![clip](demo.mp4)')).to.contain('<video');
+			Expect(tmpProvider.parseInline('![logo](/img/logo.png)')).to.contain('<img');
+			// The trap this guards: an extensionless relative URL is how uploaded IMAGES are addressed, so
+			// inferring video from "relative" would turn the whole media library into broken players.
+			Expect(tmpProvider.parseInline('![shot](/1.0/Media/42/Blob)')).to.contain('<img');
+		});
+	});
+
+	suite('A third-party video', () =>
+	{
+		test('renders a card that has requested NOTHING from the provider yet', () =>
+		{
+			// The property the whole design exists for. Before a click there must be no request to YouTube
+			// in this markup at all -- not a player, and not a thumbnail either. An href is a link the
+			// reader may follow; a src is a fetch the browser makes on its own, so there must be no src.
+			let tmpProvider = createProvider();
+			let tmpHTML = tmpProvider.videoEmbedHTML('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+			Expect(tmpHTML).to.contain('pict-content-video-embed');
+			Expect(tmpHTML).to.contain('data-embed=');
+			Expect(tmpHTML, 'no iframe until the reader asks').to.not.contain('<iframe');
+			let tmpSources = tmpHTML.match(/src="[^"]*"/g) || [];
+			tmpSources.forEach((pSource) =>
+			{
+				Expect(pSource, 'no request to the provider before a click').to.not.contain('youtube');
+				Expect(pSource).to.not.contain('ytimg');
+			});
+		});
+
+		test('shows a poster only when the AUTHOR supplied one', () =>
+		{
+			let tmpProvider = createProvider();
+			Expect(tmpProvider.videoEmbedHTML('https://vimeo.com/123456789')).to.not.contain('pict-content-video-poster');
+			let tmpWithPoster = tmpProvider.videoEmbedHTML('https://vimeo.com/123456789\nposter: /1.0/Media/9/Blob');
+			Expect(tmpWithPoster).to.contain('pict-content-video-poster');
+			Expect(tmpWithPoster).to.contain('/1.0/Media/9/Blob');
+		});
+
+		test('stays a working link when nothing hydrates it', () =>
+		{
+			// A server-rendered or printed copy of a document runs no JavaScript. The card is an anchor, so
+			// it degrades to what it always was: a way to get to the video.
+			let tmpProvider = createProvider();
+			let tmpHTML = tmpProvider.videoEmbedHTML('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+			Expect(tmpHTML).to.contain('href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"');
+			Expect(tmpHTML).to.contain('rel="noopener noreferrer"');
+		});
+
+		test('an unknown site is offered as a link rather than promised as an embed', () =>
+		{
+			let tmpProvider = createProvider();
+			let tmpHTML = tmpProvider.videoEmbedHTML('https://videos.example.com/watch/9');
+			Expect(tmpHTML).to.contain('href="https://videos.example.com/watch/9"');
+			Expect(tmpHTML, 'nothing to swap in, so the click stays a link').to.not.contain('data-embed=');
+		});
+	});
+
+	suite('A malformed fence', () =>
+	{
+		test('says so instead of emitting a broken player', () =>
+		{
+			let tmpProvider = createProvider();
+			Expect(tmpProvider.videoEmbedHTML('')).to.contain('No video URL was given');
+			Expect(tmpProvider.videoEmbedHTML('javascript:alert(1)')).to.contain('not a http(s) or relative URL');
+			Expect(tmpProvider.videoEmbedHTML('javascript:alert(1)')).to.not.contain('javascript:alert');
+		});
+	});
+
+	suite('The fence in a document', () =>
+	{
+		test('parseMarkdown turns a video fence into an embed, and leaves other fences alone', () =>
+		{
+			let tmpProvider = createProvider();
+			let tmpMarkdown = '# Notes\n\n```video\nhttps://youtu.be/dQw4w9WgXcQ\ntitle: A walkthrough\n```\n\n```js\nlet x = 1;\n```\n';
+			let tmpHTML = tmpProvider.parseMarkdown(tmpMarkdown);
+			Expect(tmpHTML).to.contain('pict-content-video-embed');
+			Expect(tmpHTML).to.contain('A walkthrough');
+			Expect(tmpHTML, 'a code fence is still a code fence').to.contain('language-js');
+		});
+	});
+});

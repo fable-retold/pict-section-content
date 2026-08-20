@@ -89,8 +89,60 @@ class PictContentView extends libPictView
 		// retold-content-system).
 		this.renderExcalidrawDiagrams(tmpContainerID);
 
+		// Post-render: make ```video cards for third-party players click-to-load.
+		this.hydrateVideoEmbeds(tmpContainerID);
+
 		// Post-render: render KaTeX equations if katex is available
 		this.renderKaTeXEquations(tmpContainerID);
+	}
+
+	/**
+	 * Wire the click-to-load video cards the markdown parser emitted for third-party players.
+	 *
+	 * Until a reader clicks, nothing has been requested from the provider: no player, no cookies, no
+	 * thumbnail, no record that this document was opened. The click is the consent, and only then is the
+	 * iframe created. This is the whole reason the card exists rather than an iframe -- an embed that loads
+	 * with the page has already told a third party who is reading before anyone chose anything.
+	 *
+	 * Degrades to a link. With no JavaScript, or before this runs, the card is an anchor to the video, which
+	 * is what a server-rendered or printed copy of a document is left with.
+	 *
+	 * Idempotent: a hydrated figure carries data-hydrated, so a re-render does not double-bind.
+	 *
+	 * @param {string} [pContainerID]
+	 */
+	hydrateVideoEmbeds(pContainerID)
+	{
+		if (typeof document === 'undefined') { return; }
+		let tmpContainer = pContainerID ? document.getElementById(String(pContainerID).replace(/^#/, '')) : document;
+		if (!tmpContainer) { return; }
+		let tmpFigures = tmpContainer.querySelectorAll('.pict-content-video-embed[data-embed]:not([data-hydrated])');
+		for (let i = 0; i < tmpFigures.length; i++)
+		{
+			let tmpFigure = tmpFigures[i];
+			tmpFigure.setAttribute('data-hydrated', 'true');
+			let tmpCard = tmpFigure.querySelector('.pict-content-video-card');
+			if (!tmpCard) { continue; }
+			tmpCard.addEventListener('click', (pEvent) =>
+			{
+				// A modified click is the reader asking for a new tab; leave the anchor to do that.
+				if (pEvent.metaKey || pEvent.ctrlKey || pEvent.shiftKey || pEvent.altKey || pEvent.button > 0) { return; }
+				pEvent.preventDefault();
+				let tmpEmbed = tmpFigure.getAttribute('data-embed') || '';
+				if (!tmpEmbed) { return; }
+				let tmpFrame = document.createElement('iframe');
+				tmpFrame.setAttribute('src', tmpEmbed);
+				tmpFrame.setAttribute('title', (tmpFigure.querySelector('.pict-content-video-title') || {}).textContent || 'Video');
+				tmpFrame.setAttribute('frameborder', '0');
+				tmpFrame.setAttribute('allow', 'accelerometer; autoplay; encrypted-media; picture-in-picture');
+				tmpFrame.setAttribute('allowfullscreen', 'allowfullscreen');
+				// The player gets no referrer: which document someone watched a video from is not the
+				// provider's business, and nothing about playback needs it.
+				tmpFrame.setAttribute('referrerpolicy', 'no-referrer');
+				tmpFrame.className = 'pict-content-video-frame';
+				tmpCard.parentNode.replaceChild(tmpFrame, tmpCard);
+			});
+		}
 	}
 
 	/**

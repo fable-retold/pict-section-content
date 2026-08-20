@@ -654,6 +654,61 @@ class ContentShowcaseApplication extends libPictApplication
 	}
 
 	// ---- Example 11: Full Page Demo ----
+	// ---- Example: Video ----
+	getMarkdown_ShowcaseVideo()
+	{
+		return [
+			'# Video',
+			'',
+			'A `video` fence takes the URL on its first line, then optional `key: value` lines.',
+			'How it renders depends on where the video lives.',
+			'',
+			'## A self-hosted recording',
+			'',
+			'A relative URL, or a file ending in .mp4 / .webm / .ogv / .ogg / .mov / .m4v, plays inline.',
+			'The browser paints the first frame as the thumbnail, so no poster is needed.',
+			'',
+			'```video',
+			'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+			'title: A recording served from wherever your application keeps its media',
+			'```',
+			'',
+			'The image form works too, when the file has a video extension:',
+			'',
+			'    ![A short clip](demo.mp4)',
+			'',
+			'## A YouTube or Vimeo video',
+			'',
+			'These render as a card. Nothing is requested from the provider until you click it -- not the',
+			'player, and not a thumbnail either, since fetching one would report you to them just as loading',
+			'the player does. Click the card and the player replaces it.',
+			'',
+			'```video',
+			'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+			'title: How the deploy pipeline works',
+			'```',
+			'',
+			'Supply a `poster` if you want a picture on the card. It is your image, served from wherever you',
+			'keep it, so showing it costs the reader nothing:',
+			'',
+			'```video',
+			'https://vimeo.com/76979871',
+			'title: With an author-supplied poster',
+			'poster: https://interactive-examples.mdn.mozilla.net/media/cc0-images/grapefruit-slice-332-332.jpg',
+			'```',
+			'',
+			'## Anything else',
+			'',
+			'A URL from a site this does not know how to embed renders as a link. Embedding means letting a',
+			'third party run code in the reader page, so the sites allowed to do that are a list, not a guess.',
+			'',
+			'```video',
+			'https://videos.example.com/watch/9',
+			'title: Some other video host',
+			'```',
+		].join('\n');
+	}
+
 	getMarkdown_ShowcaseFullPage()
 	{
 		return [
